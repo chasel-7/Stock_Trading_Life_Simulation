@@ -27,6 +27,84 @@
 ### 1.4 美术风格
 **日式卡通 + 经营模拟风**，参考《中国式家长》的温馨调性。角色用Q版卡通形象，事件用卡片式叙事呈现，整体亲切、幽默、有人情味。
 
+### 1.5 核心玩法流程图
+
+> 📎 完整可交互版本：[gameplay-flowchart.html](file:///Users/xiangfang/Developer/projects/Stock_Trading_Life_Simulation/docs/gameplay-flowchart.html)
+
+```mermaid
+flowchart TD
+    START(["🎮 游戏开始"]) --> ROLE["👤 选择角色（4选1）\n互联网打工人/销售经理/自由职业者/体制内青年"]
+    ROLE --> STOCK["📊 系统抽取15支股票\n每板块3支 · 含2~3支推荐股"]
+    STOCK --> FIRST{{"◆ 是否首次游玩？"}}
+    FIRST -->|是| TUTORIAL["📖 叙事式教学 Day1~2\nNPC引导学会交易/QTE/信息"]
+    FIRST -->|否| DAILY
+    TUTORIAL --> DAILY
+
+    subgraph DAILY_LOOP ["📅 每日循环 · Day 1~15 · 每天≈10分钟"]
+        direction TB
+        DAILY["☀️ 盘前阶段 ~1min"] --> PRE_INFO["📰 免费信息推送\n大盘趋势 · 板块热度 · 推荐股高亮"]
+        PRE_INFO --> TRADE_START["📈 盘中交易 ~5min\n分时图/日K · 价格步进跳动"]
+
+        TRADE_START --> BUY_SELL["💰 一键买入/卖出\n手续费1%"]
+        BUY_SELL --> QTE{{"◆ 盘中随机事件？"}}
+
+        QTE -->|⚡ 反应型QTE| QTE_R["领导巡视/客户电话\n3秒内点击"]
+        QTE_R -->|成功| QTE_OK["✅ 无损/奖金"]
+        QTE_R -->|失败| QTE_FAIL["❌ 罚款"]
+        QTE -->|🤔 决策型QTE| QTE_D["紧急开会/加班/同事求助\n10秒选A或B"]
+        QTE_D --> QTE_RESULT["选A: 奖金+失去交易权\n选B: 保留交易权+风险"]
+        QTE -->|🔍 主动购买信息| INFO_BUY["午餐会¥500/研报¥1000"]
+        INFO_BUY --> CHAIN{{"◆ ≥2条同股信息？"}}
+        CHAIN -->|是| CHAIN_OK["🔗 情报串联\n90%确信度综合判断"]
+        CHAIN -->|否| POST
+
+        QTE_OK --> POST
+        QTE_FAIL --> POST
+        QTE_RESULT --> POST
+        CHAIN_OK --> POST
+
+        POST{{"🌙 选择晚上去哪？"}} -->|🍺 酒吧¥300| BAR["50%真/50%假消息"]
+        POST -->|📚 书店¥100| BOOK["手续费减半5天"]
+        POST -->|🏠 回家·免费| HOME["无消费无信息"]
+
+        BAR --> LIFE_EVENT
+        BOOK --> LIFE_EVENT
+        HOME --> LIFE_EVENT
+
+        LIFE_EVENT{{"◆ 生活突发事件？"}}
+        LIFE_EVENT -->|触发| LIFE["家电坏了/亲友借钱/老婆指教\n身体不适/朋友请客"]
+        LIFE_EVENT -->|无| PROFIT_CHECK
+
+        LIFE --> PROFIT_CHECK
+        PROFIT_CHECK{{"◆ 当日盈利>¥2000？"}}
+        PROFIT_CHECK -->|是| IMPULSE["🛍️ 消费冲动事件\n犒劳自己/买礼物/换手机"]
+        PROFIT_CHECK -->|否| SETTLE
+
+        IMPULSE --> SETTLE
+
+        SETTLE["💰 日结算\n+日薪 −生活成本 ±事件损益"]
+        SETTLE --> BANKRUPT{{"◆ 流动现金 ≤ 0？"}}
+        BANKRUPT -->|💀 破产| END_REVIEW
+        BANKRUPT -->|否| TARGET{{"◆ 总资产 ≥ 200%？"}}
+        TARGET -->|🏆 达标| END_REVIEW
+        TARGET -->|否| LAST{{"◆ 最后一天？"}}
+        LAST -->|📅 到期| END_REVIEW
+        LAST -->|否| DAILY
+    end
+
+    subgraph END_GAME ["🏆 终局复盘 ~2分钟"]
+        END_REVIEW["🎭 揭开面纱\n逐个揭示股票真实身份"]
+        END_REVIEW --> DATA_REVIEW["📊 数据复盘\n资产曲线 · 操盘vs事件收益"]
+        DATA_REVIEW --> BIAS["🧠 认知偏差诊断\n追涨杀跌/沉没成本/过度交易\n信息过载/损失厌恶/消费冲动"]
+        BIAS --> SCORE["⭐ 多维评分+称号\n投资智慧/社交回报/生活平衡/心态稳定"]
+        SCORE --> SHARE["📤 分享海报生成\n称号+收益率→微信分享"]
+    end
+
+    SHARE --> AGAIN{{"◆ 再来一局？"}}
+    AGAIN -->|是| ROLE
+    AGAIN -->|否| GAME_END(["🎮 游戏结束"])
+```
+
 ---
 
 ## 二、核心游戏循环

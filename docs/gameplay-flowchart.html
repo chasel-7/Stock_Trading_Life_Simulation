@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票人生模拟器 — 核心玩法流程图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .flow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Node base */
+        .node {
+            position: relative;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            min-width: 200px;
+            max-width: 320px;
+        }
+
+        /* Node types */
+        .node-start {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border-radius: 24px;
+        }
+
+        .node-phase {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .node-action {
+            background: #fff;
+            color: #2c3e50;
+            border: 2px solid #3498db;
+        }
+
+        .node-decision {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffc107;
+            transform: rotate(0deg);
+            clip-path: none;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .node-decision::before {
+            content: "◆ ";
+        }
+
+        .node-event {
+            background: #e8f4fd;
+            color: #1565c0;
+            border: 2px solid #42a5f5;
+        }
+
+        .node-result-good {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+
+        .node-result-bad {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+
+        .node-end {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: #fff;
+            border-radius: 24px;
+        }
+
+        .node-info {
+            background: #e8daef;
+            color: #6c3483;
+            border: 2px solid #8e44ad;
+            font-size: 12px;
+        }
+
+        /* Arrows */
+        .arrow {
+            width: 3px;
+            height: 28px;
+            background: #95a5a6;
+            position: relative;
+            z-index: 0;
+        }
+
+        .arrow::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: -5px;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 8px solid #95a5a6;
+        }
+
+        .arrow-label {
+            font-size: 11px;
+            color: #7f8c8d;
+            font-weight: 600;
+            position: absolute;
+            left: 14px;
+            top: 4px;
+            white-space: nowrap;
+        }
+
+        /* Branch container */
+        .branch {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .branch-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            flex: 1;
+            min-width: 150px;
+            max-width: 280px;
+        }
+
+        .branch-label {
+            font-size: 11px;
+            color: #fff;
+            background: #95a5a6;
+            padding: 2px 10px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+        }
+
+        .branch-label.yes {
+            background: #27ae60;
+        }
+
+        .branch-label.no {
+            background: #e74c3c;
+        }
+
+        .branch-label.opt {
+            background: #3498db;
+        }
+
+        /* Horizontal connector */
+        .h-connector {
+            width: 100%;
+            height: 3px;
+            background: #95a5a6;
+            position: relative;
+            max-width: 600px;
+        }
+
+        /* Section */
+        .section {
+            width: 100%;
+            max-width: 820px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 16px;
+            padding: 20px 16px;
+            margin: 4px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            position: relative;
+        }
+
+        .section-label {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #fff;
+            padding: 2px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #7f8c8d;
+            border-radius: 4px;
+        }
+
+        .section-pre {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.03);
+        }
+
+        .section-trade {
+            border-color: #e74c3c;
+            background: rgba(231, 76, 60, 0.03);
+        }
+
+        .section-post {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.03);
+        }
+
+        .section-settle {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.03);
+        }
+
+        .section-end {
+            border-color: #8e44ad;
+            background: rgba(142, 68, 173, 0.03);
+        }
+
+        /* Loop indicator */
+        .loop-back {
+            width: 100%;
+            max-width: 860px;
+            border: 3px solid #3498db;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            height: 40px;
+            position: relative;
+            margin-top: -10px;
+        }
+
+        .loop-back::after {
+            content: "🔄 下一个交易日";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #3498db;
+            color: #fff;
+            padding: 3px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .small {
+            font-size: 11px;
+            font-weight: 400;
+            margin-top: 2px;
+            color: inherit;
+            opacity: 0.8;
+        }
+
+        .detail-list {
+            font-size: 12px;
+            font-weight: 400;
+            text-align: left;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎮 股票人生模拟器 — 核心玩法流程图</h1>
+    <p class="subtitle">Stock Life Simulator · Core Gameplay Flow · V2.0</p>
+
+    <div class="flow">
+
+        <!-- ===== START ===== -->
+        <div class="node node-start">🎮 游戏开始</div>
+        <div class="arrow"></div>
+
+        <div class="node node-action">
+            👤 选择角色（4选1）
+            <div class="detail-list">
+                🧑‍💻 互联网打工人 · 👔 销售经理<br>
+                🏠 自由职业者 · 👩‍🏫 体制内青年
+            </div>
+        </div>
+        <div class="arrow"></div>
+
+        <div class="node node-action">
+            📊 系统抽取15支股票
+            <div class="small">每板块3支 · 含2~3支"推荐股"</div>
+        </div>
+        <div class="arrow"></div>
+
+        <div class="node node-decision">是否首次游玩？</div>
+        <div class="arrow"></div>
+
+        <div class="branch">
+            <div class="branch-col">
+                <div class="branch-label yes">是</div>
+                <div class="node node-event" style="font-size:12px;">
+                    📖 叙事式教学（Day 1~2）<br>
+                    <span class="small">NPC引导学会交易/QTE/信息</span>
+                </div>
+            </div>
+            <div class="branch-col">
+                <div class="branch-label no">否</div>
+                <div class="node node-action" style="font-size:12px;">直接进入交易日</div>
+            </div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- ===== DAILY LOOP START ===== -->
+        <div class="node node-phase">📅 每日循环（Day 1 ~ 15 · 每天≈10分钟）</div>
+        <div class="arrow"></div>
+
+        <!-- PRE-MARKET -->
+        <div class="section section-pre">
+            <div class="section-label">☀️ 盘前阶段 (~1分钟)</div>
+            <div class="node node-action">
+                📰 免费信息推送
+                <div class="detail-list">
+                    · 大盘趋势（偏多/偏空）<br>
+                    · 板块热度（今日活跃板块）<br>
+                    · 推荐股高亮显示
+                </div>
+            </div>
+            <div class="arrow"></div>
+            <div class="node node-action">👁️ 查看持仓 · 浏览昨日收盘</div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- TRADING -->
+        <div class="section section-trade">
+            <div class="section-label">📈 盘中交易 (~5分钟)</div>
+            <div class="node node-action">
+                📊 实时行情（分时图 / 日K切换）
+                <div class="small">价格每5~10秒步进跳动</div>
+            </div>
+            <div class="arrow"></div>
+            <div class="node node-action">💰 交易决策：一键买入 / 卖出<div class="small">手续费1%（书店buff可减半）</div>
+            </div>
+            <div class="arrow"></div>
+
+            <div class="node node-decision">盘中随机事件触发？</div>
+            <div class="arrow"></div>
+            <div class="branch">
+                <div class="branch-col">
+                    <div class="branch-label opt">⚡ 反应型QTE</div>
+                    <div class="node node-event" style="font-size:12px;">
+                        领导巡视 / 客户电话<br>
+                        <span class="small">3秒内点击</span>
+                    </div>
+                    <div class="arrow" style="height:16px;"></div>
+                    <div class="branch" style="gap:8px;">
+                        <div class="node node-result-good" style="font-size:11px; min-width:90px; padding:6px;">✅
+                            成功<br>无损/奖金</div>
+                        <div class="node node-result-bad" style="font-size:11px; min-width:90px; padding:6px;">❌
+                            失败<br>罚款</div>
+                    </div>
+                </div>
+                <div class="branch-col">
+                    <div class="branch-label opt">🤔 决策型QTE</div>
+                    <div class="node node-event" style="font-size:12px;">
+                        紧急开会 / 加班 / 同事求助<br>
+                        <span class="small">10秒选择A或B</span>
+                    </div>
+                    <div class="arrow" style="height:16px;"></div>
+                    <div class="branch" style="gap:8px;">
+                        <div class="node node-result-good" style="font-size:11px; min-width:90px; padding:6px;">
+                            选A<br>奖金/情报</div>
+                        <div class="node node-result-bad" style="font-size:11px; min-width:90px; padding:6px;">
+                            选B<br>保留交易权</div>
+                    </div>
+                </div>
+                <div class="branch-col">
+                    <div class="branch-label opt">🔍 主动信息购买</div>
+                    <div class="node node-event" style="font-size:12px;">
+                        午餐会¥500 / 研报¥1000
+                    </div>
+                    <div class="arrow" style="height:16px;"></div>
+                    <div class="node node-decision" style="font-size:11px; min-width:120px; padding:6px;">
+                        ≥2条同股信息？
+                    </div>
+                    <div class="arrow" style="height:16px;"></div>
+                    <div class="node node-info" style="min-width:120px; padding:6px;">
+                        🔗 情报串联触发<br>
+                        <span class="small">90%确信度综合判断</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- POST-MARKET -->
+        <div class="section section-post">
+            <div class="section-label">🌙 盘后社交 (~3分钟)</div>
+            <div class="node node-decision">选择"晚上去哪"？</div>
+            <div class="arrow"></div>
+            <div class="branch">
+                <div class="branch-col">
+                    <div class="branch-label opt">🍺 酒吧 ¥300</div>
+                    <div class="node node-event" style="font-size:12px;">获得1条消息<br><span class="small">50%真 /
+                            50%假</span></div>
+                </div>
+                <div class="branch-col">
+                    <div class="branch-label opt">📚 书店 ¥100</div>
+                    <div class="node node-event" style="font-size:12px;">手续费减半<br><span class="small">持续5天</span></div>
+                </div>
+                <div class="branch-col">
+                    <div class="branch-label opt">🏠 回家 免费</div>
+                    <div class="node node-event" style="font-size:12px;">无消费<br><span class="small">无信息</span></div>
+                </div>
+            </div>
+            <div class="arrow"></div>
+
+            <div class="node node-decision">生活突发事件触发？</div>
+            <div class="arrow"></div>
+            <div class="branch">
+                <div class="branch-col">
+                    <div class="branch-label yes">触发</div>
+                    <div class="node node-event" style="font-size:11px;">
+                        🏠 家电坏了（强制¥2000）<br>
+                        👨‍👩‍👦 亲友借钱（20%现金→120%回报）<br>
+                        💍 老婆指教（亏损×20%买礼物）<br>
+                        🏥 身体不适（明日交易缩短）<br>
+                        🎉 朋友请客（免费信息）
+                    </div>
+                </div>
+                <div class="branch-col">
+                    <div class="branch-label no">无事件</div>
+                    <div class="node node-action" style="font-size:12px;">直接进入日结算</div>
+                </div>
+            </div>
+            <div class="arrow"></div>
+
+            <div class="node node-decision">当日盈利 > ¥2000？</div>
+            <div class="arrow"></div>
+            <div class="branch">
+                <div class="branch-col">
+                    <div class="branch-label yes">触发消费冲动</div>
+                    <div class="node node-event" style="font-size:11px;">
+                        🛍️ 犒劳自己 / 🎁 买礼物 / 📱 换手机
+                    </div>
+                </div>
+                <div class="branch-col">
+                    <div class="branch-label no">否</div>
+                    <div class="node node-action" style="font-size:12px;">跳过</div>
+                </div>
+            </div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- SETTLEMENT -->
+        <div class="section section-settle">
+            <div class="section-label">💰 日结算 (~1分钟)</div>
+            <div class="node node-action">
+                🧮 结算计算
+                <div class="detail-list">
+                    + 日薪收入<br>
+                    − 日生活成本<br>
+                    ± 事件损益<br>
+                    ± 持仓市值变动
+                </div>
+            </div>
+            <div class="arrow"></div>
+
+            <div class="node node-decision" style="border-color:#dc3545;">流动现金 ≤ 0？</div>
+            <div class="arrow"></div>
+            <div class="branch">
+                <div class="branch-col">
+                    <div class="branch-label yes" style="background:#dc3545;">💀 破产</div>
+                    <div class="node node-result-bad">游戏结束 → 终局复盘</div>
+                </div>
+                <div class="branch-col">
+                    <div class="branch-label no">未破产</div>
+                    <div class="node node-decision" style="font-size:12px; border-color:#28a745;">总资产 ≥ 起始×200%？</div>
+                    <div class="arrow" style="height:14px;"></div>
+                    <div class="branch" style="gap:8px;">
+                        <div class="branch-col">
+                            <div class="branch-label yes">🏆 达标</div>
+                            <div class="node node-result-good" style="font-size:12px;">胜利 → 终局复盘</div>
+                        </div>
+                        <div class="branch-col">
+                            <div class="branch-label no">继续</div>
+                            <div class="node node-decision" style="font-size:12px;">最后一天？</div>
+                            <div class="arrow" style="height:12px;"></div>
+                            <div class="branch" style="gap:8px;">
+                                <div class="branch-col">
+                                    <div class="branch-label yes">📅 到期</div>
+                                    <div class="node node-action" style="font-size:11px;">→ 终局复盘</div>
+                                </div>
+                                <div class="branch-col">
+                                    <div class="branch-label no">🔄</div>
+                                    <div class="node node-action" style="font-size:11px;">→ 下一天</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- ENDGAME -->
+        <div class="section section-end">
+            <div class="section-label">🏆 终局复盘 (~2分钟)</div>
+            <div class="node node-action">
+                🎭 Step 1 — 揭开面纱
+                <div class="small">逐个揭示15支股票真实身份 + 后续走势</div>
+            </div>
+            <div class="arrow"></div>
+            <div class="node node-action">
+                📊 Step 2 — 数据复盘
+                <div class="small">资产曲线 · 操盘收益 vs 事件收益</div>
+            </div>
+            <div class="arrow"></div>
+            <div class="node node-event">
+                🧠 Step 3 — 认知偏差诊断
+                <div class="detail-list">
+                    追涨杀跌 · 沉没成本 · 过度交易<br>
+                    信息过载 · 损失厌恶 · 消费冲动
+                </div>
+            </div>
+            <div class="arrow"></div>
+            <div class="node node-info">
+                ⭐ Step 4 — 多维评分 + 称号
+                <div class="small">投资智慧 / 社交回报 / 生活平衡 / 心态稳定</div>
+            </div>
+            <div class="arrow"></div>
+            <div class="node node-action">
+                📤 Step 5 — 分享海报生成
+                <div class="small">称号 + 收益率 + 一句话 → 微信分享</div>
+            </div>
+        </div>
+        <div class="arrow"></div>
+
+        <div class="node node-decision">再来一局？</div>
+        <div class="arrow"></div>
+        <div class="branch">
+            <div class="branch-col">
+                <div class="branch-label yes">是</div>
+                <div class="node node-start" style="font-size:13px;">🔄 返回角色选择</div>
+            </div>
+            <div class="branch-col">
+                <div class="branch-label no">否</div>
+                <div class="node node-end">🎮 游戏结束</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div style="text-align:center; margin-top:40px; font-size:11px; color:#95a5a6;">
+        Stock Life Simulator · Game Design V2.0 · 2026-04-22
+    </div>
+
+</body>
+
+</html>
