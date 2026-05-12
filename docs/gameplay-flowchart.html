@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>股票人生模拟器 — 核心玩法流程图</title>
+    <title>股票人生模拟器 — 核心玩法流程图 V3.0</title>
     <style>
         * {
             margin: 0;
@@ -14,22 +14,23 @@
 
         body {
             font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             padding: 30px 20px;
+            color: #e0e0e0;
         }
 
         h1 {
             text-align: center;
             font-size: 24px;
-            color: #2c3e50;
+            color: #e0e0e0;
             margin-bottom: 6px;
         }
 
         .subtitle {
             text-align: center;
             font-size: 13px;
-            color: #7f8c8d;
+            color: #8892a4;
             margin-bottom: 30px;
         }
 
@@ -50,10 +51,10 @@
             font-size: 14px;
             font-weight: 600;
             text-align: center;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
             z-index: 1;
             min-width: 200px;
-            max-width: 320px;
+            max-width: 360px;
         }
 
         /* Node types */
@@ -70,19 +71,17 @@
         }
 
         .node-action {
-            background: #fff;
-            color: #2c3e50;
-            border: 2px solid #3498db;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e0e0;
+            border: 2px solid rgba(52, 152, 219, 0.5);
+            backdrop-filter: blur(4px);
         }
 
         .node-decision {
-            background: #fff3cd;
-            color: #856404;
-            border: 2px solid #ffc107;
-            transform: rotate(0deg);
-            clip-path: none;
+            background: rgba(255, 193, 7, 0.12);
+            color: #ffc107;
+            border: 2px solid rgba(255, 193, 7, 0.4);
             border-radius: 8px;
-            position: relative;
         }
 
         .node-decision::before {
@@ -90,21 +89,21 @@
         }
 
         .node-event {
-            background: #e8f4fd;
-            color: #1565c0;
-            border: 2px solid #42a5f5;
+            background: rgba(33, 150, 243, 0.12);
+            color: #90caf9;
+            border: 2px solid rgba(33, 150, 243, 0.4);
         }
 
         .node-result-good {
-            background: #d4edda;
-            color: #155724;
-            border: 2px solid #28a745;
+            background: rgba(76, 175, 80, 0.15);
+            color: #81c784;
+            border: 2px solid rgba(76, 175, 80, 0.4);
         }
 
         .node-result-bad {
-            background: #f8d7da;
-            color: #721c24;
-            border: 2px solid #dc3545;
+            background: rgba(244, 67, 54, 0.15);
+            color: #ef9a9a;
+            border: 2px solid rgba(244, 67, 54, 0.4);
         }
 
         .node-end {
@@ -114,9 +113,23 @@
         }
 
         .node-info {
-            background: #e8daef;
-            color: #6c3483;
-            border: 2px solid #8e44ad;
+            background: rgba(142, 68, 173, 0.15);
+            color: #ce93d8;
+            border: 2px solid rgba(142, 68, 173, 0.4);
+            font-size: 12px;
+        }
+
+        .node-scene {
+            background: rgba(0, 200, 83, 0.12);
+            color: #69f0ae;
+            border: 2px solid rgba(0, 200, 83, 0.3);
+            font-size: 12px;
+        }
+
+        .node-skip {
+            background: rgba(158, 158, 158, 0.12);
+            color: #bdbdbd;
+            border: 2px dashed rgba(158, 158, 158, 0.4);
             font-size: 12px;
         }
 
@@ -124,7 +137,7 @@
         .arrow {
             width: 3px;
             height: 28px;
-            background: #95a5a6;
+            background: #546e7a;
             position: relative;
             z-index: 0;
         }
@@ -136,17 +149,7 @@
             left: -5px;
             border-left: 7px solid transparent;
             border-right: 7px solid transparent;
-            border-top: 8px solid #95a5a6;
-        }
-
-        .arrow-label {
-            font-size: 11px;
-            color: #7f8c8d;
-            font-weight: 600;
-            position: absolute;
-            left: 14px;
-            top: 4px;
-            white-space: nowrap;
+            border-top: 8px solid #546e7a;
         }
 
         /* Branch container */
@@ -172,38 +175,33 @@
         .branch-label {
             font-size: 11px;
             color: #fff;
-            background: #95a5a6;
+            background: #546e7a;
             padding: 2px 10px;
             border-radius: 10px;
             margin-bottom: 6px;
         }
 
         .branch-label.yes {
-            background: #27ae60;
+            background: #2e7d32;
         }
 
         .branch-label.no {
-            background: #e74c3c;
+            background: #c62828;
         }
 
         .branch-label.opt {
-            background: #3498db;
+            background: #1565c0;
         }
 
-        /* Horizontal connector */
-        .h-connector {
-            width: 100%;
-            height: 3px;
-            background: #95a5a6;
-            position: relative;
-            max-width: 600px;
+        .branch-label.mood {
+            background: #6a1b9a;
         }
 
         /* Section */
         .section {
             width: 100%;
             max-width: 820px;
-            border: 2px dashed #bdc3c7;
+            border: 2px dashed rgba(189, 195, 199, 0.3);
             border-radius: 16px;
             padding: 20px 16px;
             margin: 4px 0;
@@ -218,64 +216,37 @@
             position: absolute;
             top: -12px;
             left: 20px;
-            background: #fff;
+            background: #1a1a2e;
             padding: 2px 12px;
             font-size: 12px;
             font-weight: 700;
-            color: #7f8c8d;
+            color: #8892a4;
             border-radius: 4px;
         }
 
         .section-pre {
-            border-color: #3498db;
+            border-color: rgba(52, 152, 219, 0.4);
             background: rgba(52, 152, 219, 0.03);
         }
 
         .section-trade {
-            border-color: #e74c3c;
+            border-color: rgba(231, 76, 60, 0.4);
             background: rgba(231, 76, 60, 0.03);
         }
 
         .section-post {
-            border-color: #27ae60;
-            background: rgba(39, 174, 96, 0.03);
+            border-color: rgba(0, 200, 83, 0.4);
+            background: rgba(0, 200, 83, 0.03);
         }
 
         .section-settle {
-            border-color: #f39c12;
-            background: rgba(243, 156, 18, 0.03);
+            border-color: rgba(255, 152, 0, 0.4);
+            background: rgba(255, 152, 0, 0.03);
         }
 
         .section-end {
-            border-color: #8e44ad;
+            border-color: rgba(142, 68, 173, 0.4);
             background: rgba(142, 68, 173, 0.03);
-        }
-
-        /* Loop indicator */
-        .loop-back {
-            width: 100%;
-            max-width: 860px;
-            border: 3px solid #3498db;
-            border-top: none;
-            border-radius: 0 0 20px 20px;
-            height: 40px;
-            position: relative;
-            margin-top: -10px;
-        }
-
-        .loop-back::after {
-            content: "🔄 下一个交易日";
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #3498db;
-            color: #fff;
-            padding: 3px 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            white-space: nowrap;
         }
 
         .small {
@@ -293,13 +264,73 @@
             margin-top: 6px;
             line-height: 1.6;
         }
+
+        /* Scene tier table */
+        .scene-tiers {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 8px;
+        }
+
+        .scene-tier {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .tier-label {
+            min-width: 100px;
+            font-weight: 700;
+            text-align: center;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .tier-1 { background: rgba(244, 67, 54, 0.15); }
+        .tier-1 .tier-label { background: rgba(244, 67, 54, 0.3); color: #ef9a9a; }
+
+        .tier-2 { background: rgba(255, 152, 0, 0.1); }
+        .tier-2 .tier-label { background: rgba(255, 152, 0, 0.3); color: #ffcc80; }
+
+        .tier-3 { background: rgba(158, 158, 158, 0.1); }
+        .tier-3 .tier-label { background: rgba(158, 158, 158, 0.3); color: #bdbdbd; }
+
+        .tier-4 { background: rgba(76, 175, 80, 0.1); }
+        .tier-4 .tier-label { background: rgba(76, 175, 80, 0.3); color: #81c784; }
+
+        .tier-5 { background: rgba(233, 30, 99, 0.1); }
+        .tier-5 .tier-label { background: rgba(233, 30, 99, 0.3); color: #f48fb1; }
+
+        .tier-scenes {
+            flex: 1;
+            color: #b0bec5;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .tag-free { background: rgba(76, 175, 80, 0.3); color: #a5d6a7; }
+        .tag-paid { background: rgba(255, 152, 0, 0.3); color: #ffcc80; }
+        .tag-luxury { background: rgba(233, 30, 99, 0.3); color: #f48fb1; }
     </style>
 </head>
 
 <body>
 
     <h1>🎮 股票人生模拟器 — 核心玩法流程图</h1>
-    <p class="subtitle">Stock Life Simulator · Core Gameplay Flow · V2.0</p>
+    <p class="subtitle">Stock Life Simulator · Core Gameplay Flow · V3.0 · 都市轻漫画风</p>
 
     <div class="flow">
 
@@ -318,7 +349,7 @@
 
         <div class="node node-action">
             📊 系统抽取15支股票
-            <div class="small">每板块3支 · 含2~3支"推荐股"</div>
+            <div class="small">100股池每板块抽3支 · 含2~3支"推荐股"</div>
         </div>
         <div class="arrow"></div>
 
@@ -330,7 +361,7 @@
                 <div class="branch-label yes">是</div>
                 <div class="node node-event" style="font-size:12px;">
                     📖 叙事式教学（Day 1~2）<br>
-                    <span class="small">NPC引导学会交易/QTE/信息</span>
+                    <span class="small">NPC引导学会交易/仓位选择/场景社交</span>
                 </div>
             </div>
             <div class="branch-col">
@@ -356,93 +387,115 @@
                 </div>
             </div>
             <div class="arrow"></div>
-            <div class="node node-action">👁️ 查看持仓 · 浏览昨日收盘</div>
+            <div class="node node-action">👁️ 浏览15支股票昨日收盘</div>
         </div>
         <div class="arrow"></div>
 
         <!-- TRADING -->
         <div class="section section-trade">
-            <div class="section-label">📈 盘中交易 (~5分钟)</div>
-            <div class="node node-action">
-                📊 实时行情（分时图 / 日K切换）
-                <div class="small">价格每5~10秒步进跳动</div>
-            </div>
-            <div class="arrow"></div>
-            <div class="node node-action">💰 交易决策：一键买入 / 卖出<div class="small">手续费1%（书店buff可减半）</div>
-            </div>
+            <div class="section-label">📈 盘中交易 (~5分钟 · 可跳过)</div>
+
+            <div class="node node-decision">跳过盘中交易？</div>
             <div class="arrow"></div>
 
-            <div class="node node-decision">盘中随机事件触发？</div>
-            <div class="arrow"></div>
             <div class="branch">
                 <div class="branch-col">
-                    <div class="branch-label opt">⚡ 反应型QTE</div>
-                    <div class="node node-event" style="font-size:12px;">
-                        领导巡视 / 客户电话<br>
-                        <span class="small">3秒内点击</span>
+                    <div class="branch-label no">否 · 进入交易</div>
+                    <div class="node node-action">
+                        📋 自选股列表<br>
+                        <span class="small">仿同花顺 · 红涨绿跌 · 价格闪烁</span>
                     </div>
                     <div class="arrow" style="height:16px;"></div>
-                    <div class="branch" style="gap:8px;">
-                        <div class="node node-result-good" style="font-size:11px; min-width:90px; padding:6px;">✅
-                            成功<br>无损/奖金</div>
-                        <div class="node node-result-bad" style="font-size:11px; min-width:90px; padding:6px;">❌
-                            失败<br>罚款</div>
+                    <div class="node node-action" style="font-size:12px;">
+                        💼 持仓视图<br>
+                        <span class="small">顶部大字今日总盈亏 · 实时跳动</span>
+                    </div>
+                    <div class="arrow" style="height:16px;"></div>
+                    <div class="node node-action" style="font-size:12px;">
+                        💰 买入 / 卖出<br>
+                        <span class="small">仓位：全仓 · 半仓 · 1/4仓<br>手续费1%（书店buff可减半）</span>
                     </div>
                 </div>
                 <div class="branch-col">
-                    <div class="branch-label opt">🤔 决策型QTE</div>
-                    <div class="node node-event" style="font-size:12px;">
-                        紧急开会 / 加班 / 同事求助<br>
-                        <span class="small">10秒选择A或B</span>
-                    </div>
-                    <div class="arrow" style="height:16px;"></div>
-                    <div class="branch" style="gap:8px;">
-                        <div class="node node-result-good" style="font-size:11px; min-width:90px; padding:6px;">
-                            选A<br>奖金/情报</div>
-                        <div class="node node-result-bad" style="font-size:11px; min-width:90px; padding:6px;">
-                            选B<br>保留交易权</div>
+                    <div class="branch-label yes">是 · 跳过</div>
+                    <div class="node node-skip">
+                        ⏭️ 不看盘<br>
+                        <span class="small">持仓自动随行情波动<br>直接进入盘后阶段</span>
                     </div>
                 </div>
-                <div class="branch-col">
-                    <div class="branch-label opt">🔍 主动信息购买</div>
-                    <div class="node node-event" style="font-size:12px;">
-                        午餐会¥500 / 研报¥1000
-                    </div>
-                    <div class="arrow" style="height:16px;"></div>
-                    <div class="node node-decision" style="font-size:11px; min-width:120px; padding:6px;">
-                        ≥2条同股信息？
-                    </div>
-                    <div class="arrow" style="height:16px;"></div>
-                    <div class="node node-info" style="min-width:120px; padding:6px;">
-                        🔗 情报串联触发<br>
-                        <span class="small">90%确信度综合判断</span>
-                    </div>
-                </div>
+            </div>
+
+            <div class="arrow"></div>
+            <div class="node node-info" style="font-size:11px;">
+                💡 纯交易 · 无QTE · 无打断 · 专注做一件事
             </div>
         </div>
         <div class="arrow"></div>
 
-        <!-- POST-MARKET -->
+        <!-- POST-MARKET: SCENE SYSTEM -->
         <div class="section section-post">
-            <div class="section-label">🌙 盘后社交 (~3分钟)</div>
-            <div class="node node-decision">选择"晚上去哪"？</div>
-            <div class="arrow"></div>
-            <div class="branch">
-                <div class="branch-col">
-                    <div class="branch-label opt">🍺 酒吧 ¥300</div>
-                    <div class="node node-event" style="font-size:12px;">获得1条消息<br><span class="small">50%真 /
-                            50%假</span></div>
-                </div>
-                <div class="branch-col">
-                    <div class="branch-label opt">📚 书店 ¥100</div>
-                    <div class="node node-event" style="font-size:12px;">手续费减半<br><span class="small">持续5天</span></div>
-                </div>
-                <div class="branch-col">
-                    <div class="branch-label opt">🏠 回家 免费</div>
-                    <div class="node node-event" style="font-size:12px;">无消费<br><span class="small">无信息</span></div>
-                </div>
+            <div class="section-label">🌙 盘后社交 (~3分钟) · 场景式</div>
+
+            <div class="node node-action">
+                📊 计算当日收益率
+                <div class="small">基于昨日总资产</div>
             </div>
             <div class="arrow"></div>
+
+            <div class="node node-decision">根据收益率解锁场景（5档累积）</div>
+            <div class="arrow"></div>
+
+            <!-- Scene tiers -->
+            <div class="scene-tiers">
+                <div class="scene-tier tier-1">
+                    <div class="tier-label">😱 &lt;-8%</div>
+                    <div class="tier-scenes">🏠 回家吃泡面 <span class="tag tag-free">免费</span> · 🌳 公园散步 <span class="tag tag-free">免费·30%</span></div>
+                </div>
+                <div class="scene-tier tier-2">
+                    <div class="tier-label">😔 -8%~-2%</div>
+                    <div class="tier-scenes">+ 📱 刷手机 <span class="tag tag-free">免费·40%</span> · 🍜 大排档 <span class="tag tag-paid">¥200·60%</span></div>
+                </div>
+                <div class="scene-tier tier-3">
+                    <div class="tier-label">😐 ±2%</div>
+                    <div class="tier-scenes">+ 📚 书店 <span class="tag tag-paid">¥100·技能</span> · 🏪 便利店 <span class="tag tag-paid">¥50</span></div>
+                </div>
+                <div class="scene-tier tier-4">
+                    <div class="tier-label">😊 +2%~+8%</div>
+                    <div class="tier-scenes">+ 🍺 酒吧 <span class="tag tag-paid">¥300·50%</span> · 🍽️ 高级餐厅 <span class="tag tag-paid">¥800·80%</span></div>
+                </div>
+                <div class="scene-tier tier-5">
+                    <div class="tier-label">🤑 &gt;+8%</div>
+                    <div class="tier-scenes">+ 🎤 KTV <span class="tag tag-luxury">¥1500·减压</span> · 💆 SPA <span class="tag tag-luxury">¥2000·100%</span></div>
+                </div>
+            </div>
+
+            <div class="arrow"></div>
+
+            <div class="node node-action">
+                🎯 选择1个场景进入
+                <div class="small">赚钱 = 选择权变多 · 消费即选择</div>
+            </div>
+            <div class="arrow"></div>
+
+            <div class="node node-scene">
+                🃏 场景内卡片式决策事件（1~3个）
+                <div class="detail-list">
+                    · 不限时 · 纯决策 · 下班了不搞紧迫感<br>
+                    · 事件因场景而异（社交/工作/消费/信息）<br>
+                    · 信息获取 = 场景的自然副产品
+                </div>
+            </div>
+
+            <div class="arrow"></div>
+            <div class="node node-info" style="font-size:11px;">
+                🔗 情报串联：同股≥2条不同来源 → 90%确信度综合研判
+            </div>
+        </div>
+        <div class="arrow"></div>
+
+        <!-- SETTLEMENT -->
+        <div class="section section-settle">
+            <div class="section-label">💰 日结算 (~1分钟)</div>
 
             <div class="node node-decision">生活突发事件触发？</div>
             <div class="arrow"></div>
@@ -459,52 +512,32 @@
                 </div>
                 <div class="branch-col">
                     <div class="branch-label no">无事件</div>
-                    <div class="node node-action" style="font-size:12px;">直接进入日结算</div>
+                    <div class="node node-action" style="font-size:12px;">直接结算</div>
                 </div>
             </div>
             <div class="arrow"></div>
 
-            <div class="node node-decision">当日盈利 > ¥2000？</div>
-            <div class="arrow"></div>
-            <div class="branch">
-                <div class="branch-col">
-                    <div class="branch-label yes">触发消费冲动</div>
-                    <div class="node node-event" style="font-size:11px;">
-                        🛍️ 犒劳自己 / 🎁 买礼物 / 📱 换手机
-                    </div>
-                </div>
-                <div class="branch-col">
-                    <div class="branch-label no">否</div>
-                    <div class="node node-action" style="font-size:12px;">跳过</div>
-                </div>
-            </div>
-        </div>
-        <div class="arrow"></div>
-
-        <!-- SETTLEMENT -->
-        <div class="section section-settle">
-            <div class="section-label">💰 日结算 (~1分钟)</div>
             <div class="node node-action">
                 🧮 结算计算
                 <div class="detail-list">
                     + 日薪收入<br>
-                    − 日生活成本<br>
-                    ± 事件损益<br>
+                    − 日生活成本 − 场景花费<br>
+                    − 生活突发事件损失<br>
                     ± 持仓市值变动
                 </div>
             </div>
             <div class="arrow"></div>
 
-            <div class="node node-decision" style="border-color:#dc3545;">流动现金 ≤ 0？</div>
+            <div class="node node-decision" style="border-color:rgba(244,67,54,0.5);">流动现金 ≤ 0？</div>
             <div class="arrow"></div>
             <div class="branch">
                 <div class="branch-col">
-                    <div class="branch-label yes" style="background:#dc3545;">💀 破产</div>
+                    <div class="branch-label yes" style="background:#c62828;">💀 破产</div>
                     <div class="node node-result-bad">游戏结束 → 终局复盘</div>
                 </div>
                 <div class="branch-col">
                     <div class="branch-label no">未破产</div>
-                    <div class="node node-decision" style="font-size:12px; border-color:#28a745;">总资产 ≥ 起始×200%？</div>
+                    <div class="node node-decision" style="font-size:12px; border-color:rgba(76,175,80,0.4);">总资产 ≥ 起始×200%？</div>
                     <div class="arrow" style="height:14px;"></div>
                     <div class="branch" style="gap:8px;">
                         <div class="branch-col">
@@ -542,7 +575,7 @@
             <div class="arrow"></div>
             <div class="node node-action">
                 📊 Step 2 — 数据复盘
-                <div class="small">资产曲线 · 操盘收益 vs 事件收益</div>
+                <div class="small">资产曲线 · 操盘收益 vs 场景决策收益</div>
             </div>
             <div class="arrow"></div>
             <div class="node node-event">
@@ -580,8 +613,8 @@
 
     </div>
 
-    <div style="text-align:center; margin-top:40px; font-size:11px; color:#95a5a6;">
-        Stock Life Simulator · Game Design V2.0 · 2026-04-22
+    <div style="text-align:center; margin-top:40px; font-size:11px; color:#546e7a;">
+        Stock Life Simulator · Game Design V3.0 · 2026-05-12 · 都市轻漫画风
     </div>
 
 </body>
