@@ -60,4 +60,10 @@ export class StockManager {
   getRecommendedStocks(): StockInfo[] {
     return Array.from(this.stocks.values()).filter(s => s.isRecommended);
   }
+
+  /** 判断某支股票是否是推荐股 */
+  isRecommended(stockId: string): boolean {
+    const stock = this.stocks.get(stockId);
+    return stock ? stock.isRecommended : false;
+  }
 }

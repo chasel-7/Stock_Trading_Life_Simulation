@@ -78,13 +78,39 @@
 
 ---
 
+## Phase 9：新手引导系统（Task 1-3）
+
+| 子计划 | 内容 | 任务 |
+|--------|------|------|
+| [phase9-tutorial.md](file:///Users/xiangfang/Developer/projects/Stock_Trading_Life_Simulation/docs/superpowers/plans/2026-05-13-phase9-tutorial.md) | TutorialManager、对话气泡UI、Day1-2叙事式教学 | Task 1-3 |
+
+---
+
+## Phase 10：排行榜系统（Task 1-2）
+
+| 子计划 | 内容 | 任务 |
+|--------|------|------|
+| [phase10-leaderboard.md](file:///Users/xiangfang/Developer/projects/Stock_Trading_Life_Simulation/docs/superpowers/plans/2026-05-13-phase10-leaderboard.md) | 排行榜数据模型、4种排行（收益/智慧/社交/全能）、排行榜场景 | Task 1-2 |
+
+---
+
+## 范围说明
+
+> 本计划覆盖设计文档的 **Phase 1（核心体验验证）** 和 **Phase 2（内容丰富+社交）** 的全部功能需求：
+> - ✅ 4角色完整（Phase 1原为1角色，已扩展）
+> - ✅ 100支股票池 + 随机抽选
+> - ✅ 10个盘后场景 + 完整事件池
+> - ✅ 新手引导系统
+> - ✅ 分享海报 + 排行榜
+> - ⚠️ 后端API（设计文档Phase 2要求）暂未包含，排行榜先用LocalStorage
+
 ## 统计
 
 | 指标 | 数值 |
 |------|------|
-| 总阶段数 | 8 |
-| 总子计划文件 | 17 |
-| 总Task数 | ~72 |
-| 总Step数 | ~250+ |
-| 预估代码文件 | ~35 |
-| 预估测试文件 | ~12 |
+| 总阶段数 | 10 |
+| 总子计划文件 | 19 |
+| 总Task数 | ~82 |
+| 总Step数 | ~300+ |
+| 预估代码文件 | ~45 |
+| 预估测试文件 | ~15 |

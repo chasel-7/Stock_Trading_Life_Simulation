@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BootScene } from '../scenes/BootScene';
+import { CharacterSelectScene } from '../scenes/CharacterSelectScene';
 import { PreMarketScene } from '../scenes/PreMarketScene';
 import { TradingScene } from '../scenes/TradingScene';
 import { PostMarketScene } from '../scenes/PostMarketScene';
@@ -18,5 +19,6 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, PreMarketScene, TradingScene, PostMarketScene, SettlementScene],
+  scene: [BootScene, CharacterSelectScene, PreMarketScene, TradingScene, PostMarketScene, SettlementScene],
 };
+

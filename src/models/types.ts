@@ -31,12 +31,22 @@ export interface Holding {
 export interface CharacterConfig {
   id: string;
   name: string;
+  emoji: string;
+  description: string;
   startingCash: number;
   dailySalary: number | [number, number]; // 固定值或[min,max]随机
   dailyLivingCost: number;
   eventFrequency: number;  // 每天平均事件次数
   specialAbility: string;
   commissionRate: number;
+  /** 销售经理：社交花费折扣 (0.8 = 8折) */
+  socialDiscount?: number;
+  /** 体制内青年：每N天1次免费研报 */
+  researchInterval?: number;
+  /** 难度星级 1-5 */
+  difficulty: number;
+  /** 玩法定位描述 */
+  playstyle: string;
 }
 
 /** 游戏存档状态 */

@@ -19,9 +19,9 @@ export class BootScene extends Phaser.Scene {
       fontFamily: 'sans-serif',
     }).setOrigin(0.5);
 
-    // 2秒后进入盘前
+    // 2秒后进入角色选择
     this.time.delayedCall(2000, () => {
-      this.scene.start('PreMarketScene');
+      this.scene.start('CharacterSelectScene');
     });
   }
 }
