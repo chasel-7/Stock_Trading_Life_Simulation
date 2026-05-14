@@ -4,6 +4,7 @@ import { CardFactory } from '../ui/CardFactory';
 import { Transition } from '../ui/Transition';
 import { SaveManager } from '../managers/SaveManager';
 import { getGameManager } from '../managers/GameManager';
+import { TutorialManager } from '../managers/TutorialManager';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
 
 export class BootScene extends Phaser.Scene {
@@ -46,6 +47,9 @@ export class BootScene extends Phaser.Scene {
       '🎮 新游戏', {
         onClick: () => {
           SaveManager.deleteSave();
+          // 注入教学管理器
+          const tutorial = new TutorialManager();
+          this.registry.set('tutorialManager', tutorial);
           Transition.fadeToScene(this, 'CharacterSelectScene');
         },
       },
@@ -87,6 +91,22 @@ export class BootScene extends Phaser.Scene {
         }).setOrigin(0.5);
       }
     }
+
+    // 排行榜按钮
+    const lbBtnY = SaveManager.hasSave() ? GAME_HEIGHT / 2 + 180 : GAME_HEIGHT / 2 + 130;
+    CardFactory.createButton(
+      this, GAME_WIDTH / 2, lbBtnY, 240, 44,
+      '🏆 排行榜', {
+        color: THEME.colors.border,
+        textColor: THEME.colors.textSecondary,
+        fontSize: '15px',
+        onClick: () => this.scene.start('LeaderboardScene'),
+      },
+    ).setAlpha(0);
+    this.tweens.add({
+      targets: this.children.getByName('') || this.children.last,
+      alpha: 1, delay: 1400, duration: 400,
+    });
 
     // 版本号
     this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 24, 'v1.0 · Stock Life Simulator', {

@@ -9,6 +9,7 @@ import { calculateScores, generateTitle, type ScoreResult, type TitleResult } fr
 import { AssetCurveChart } from '../ui/AssetCurveChart';
 import { RadarChart } from '../ui/RadarChart';
 import { generatePoster, type PosterData } from '../utils/posterGenerator';
+import { LeaderboardManager } from '../managers/LeaderboardManager';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
 
 export class ReviewScene extends Phaser.Scene {
@@ -198,6 +199,19 @@ export class ReviewScene extends Phaser.Scene {
     });
 
     const titleResult: TitleResult = generateTitle(scores);
+
+    // 自动提交排行榜
+    const leaderboard = new LeaderboardManager();
+    leaderboard.submit({
+      playerName: char.name,
+      characterId: char.id,
+      characterEmoji: char.emoji,
+      totalReturn,
+      investWisdom: scores.investWisdom,
+      socialROI: scores.socialReturn,
+      overallScore: scores.investWisdom + scores.socialReturn + scores.lifeBalance + scores.mentalStability,
+      title: titleResult.title,
+    });
 
     // 称号（动画入场）
     const emojiTxt = this.add.text(GAME_WIDTH / 2, 40, titleResult.emoji, { fontSize: '48px' }).setOrigin(0.5).setAlpha(0);

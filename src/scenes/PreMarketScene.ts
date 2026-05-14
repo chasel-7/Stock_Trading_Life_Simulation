@@ -9,6 +9,8 @@ import { getMoodEmoji } from '../utils/moodCalculator';
 import { InfoPanel } from '../ui/InfoPanel';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
 import type { DailyStockData } from '../models/types';
+import { TutorialManager } from '../managers/TutorialManager';
+import { DialogBubble } from '../ui/DialogBubble';
 
 export class PreMarketScene extends Phaser.Scene {
   constructor() {
@@ -152,5 +154,31 @@ export class PreMarketScene extends Phaser.Scene {
         },
       },
     );
+
+    // 教学引导
+    const tutorial = this.registry.get('tutorialManager') as TutorialManager | undefined;
+    if (tutorial) {
+      const steps = tutorial.getStepsForPhase(state.currentDay, 'pre-market');
+      if (steps.length > 0) {
+        let idx = 0;
+        const showNext = () => {
+          if (idx >= steps.length) return;
+          const step = steps[idx];
+          new DialogBubble(this, {
+            npcName: step.npcName,
+            npcEmoji: step.npcEmoji,
+            message: step.message,
+            highlightArea: step.highlightArea,
+            onDismiss: () => {
+              tutorial.complete(step.id);
+              idx++;
+              showNext();
+            },
+            onSkip: () => tutorial.skipAll(),
+          });
+        };
+        showNext();
+      }
+    }
   }
 }

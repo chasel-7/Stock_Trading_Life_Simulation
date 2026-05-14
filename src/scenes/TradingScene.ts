@@ -12,6 +12,8 @@ import { OrderDialog } from '../ui/OrderDialog';
 import { GAME_CONSTANTS } from '../config/constants';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
 import type { StockRowData } from '../ui/StockRow';
+import { TutorialManager } from '../managers/TutorialManager';
+import { DialogBubble } from '../ui/DialogBubble';
 
 export class TradingScene extends Phaser.Scene {
   private tickEngine!: PriceTickEngine;
@@ -121,6 +123,32 @@ export class TradingScene extends Phaser.Scene {
       loop: true,
     });
     this.tickEngine.step();
+
+    // 教学引导
+    const tutorial = this.registry.get('tutorialManager') as TutorialManager | undefined;
+    if (tutorial) {
+      const steps = tutorial.getStepsForPhase(state.currentDay, 'trading');
+      if (steps.length > 0) {
+        let idx = 0;
+        const showNext = () => {
+          if (idx >= steps.length) return;
+          const step = steps[idx];
+          new DialogBubble(this, {
+            npcName: step.npcName,
+            npcEmoji: step.npcEmoji,
+            message: step.message,
+            highlightArea: step.highlightArea,
+            onDismiss: () => {
+              tutorial.complete(step.id);
+              idx++;
+              showNext();
+            },
+            onSkip: () => tutorial.skipAll(),
+          });
+        };
+        showNext();
+      }
+    }
   }
 
   private showDetail(stockId: string, day: number): void {
