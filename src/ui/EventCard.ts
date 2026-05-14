@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { THEME } from './theme';
 import type { SceneEvent, EventOption, EventResult } from '../models/sceneTypes';
 
 export class EventCard extends Phaser.GameObjects.Container {
@@ -19,10 +20,12 @@ export class EventCard extends Phaser.GameObjects.Container {
 
     const cardH = 280;
 
-    // 卡片背景
-    const bg = scene.add.rectangle(0, 0, width, cardH, 0x1e1e3a, 0.95)
-      .setOrigin(0.5, 0)
-      .setStrokeStyle(1, 0x4a90d9, 0.5);
+    // 卡片背景 — 圆角
+    const bg = scene.add.graphics();
+    bg.fillStyle(THEME.colors.bgCard, 0.95);
+    bg.fillRoundedRect(-width / 2, 0, width, cardH, THEME.radius);
+    bg.lineStyle(1, THEME.colors.borderActive, 0.5);
+    bg.strokeRoundedRect(-width / 2, 0, width, cardH, THEME.radius);
     this.add(bg);
 
     // 事件emoji + 描述
@@ -32,7 +35,7 @@ export class EventCard extends Phaser.GameObjects.Container {
     this.add(emojiText);
 
     const desc = scene.add.text(0, 68, event.description, {
-      fontSize: '15px', color: '#e0e0e0', fontFamily: 'sans-serif',
+      fontSize: '15px', color: THEME.colors.textPrimary, fontFamily: THEME.font.primary,
       wordWrap: { width: width - 40 },
       align: 'center',
     }).setOrigin(0.5, 0);
@@ -45,14 +48,14 @@ export class EventCard extends Phaser.GameObjects.Container {
     // 选项B
     this.createOptionButton(scene, width / 4, optAY, width / 2 - 12, event.optionB, 'B');
 
-    // 入场动画
+    // 增强入场动画
     this.setAlpha(0);
-    this.setScale(0.9);
+    this.setScale(0.85);
+    this.y += 20;
     scene.tweens.add({
       targets: this,
-      alpha: 1,
-      scale: 1,
-      duration: 300,
+      alpha: 1, scale: 1, y: this.y - 20,
+      duration: 400,
       ease: 'Back.easeOut',
     });
   }
@@ -76,7 +79,7 @@ export class EventCard extends Phaser.GameObjects.Container {
 
     // 选项文本
     const label = scene.add.text(x, y + 12, option.label, {
-      fontSize: '14px', color: '#e0e0e0', fontFamily: 'sans-serif',
+      fontSize: '14px', color: THEME.colors.textPrimary, fontFamily: THEME.font.primary,
       wordWrap: { width: width - 16 },
       align: 'center',
     }).setOrigin(0.5, 0);
@@ -85,7 +88,7 @@ export class EventCard extends Phaser.GameObjects.Container {
     // 花费提示
     if (option.cost > 0) {
       const costTxt = scene.add.text(x, y + btnH - 16, `-¥${option.cost}`, {
-        fontSize: '12px', color: '#e74c3c', fontFamily: 'monospace',
+        fontSize: '12px', color: THEME.colors.rise, fontFamily: THEME.font.mono,
       }).setOrigin(0.5, 1);
       this.add(costTxt);
     }
@@ -93,7 +96,7 @@ export class EventCard extends Phaser.GameObjects.Container {
     // 信息奖励提示
     if (option.infoReward) {
       const infoTxt = scene.add.text(x, y + btnH - 32, '📋 可获信息', {
-        fontSize: '11px', color: '#4a90d9', fontFamily: 'sans-serif',
+        fontSize: '11px', color: '#6c5ce7', fontFamily: THEME.font.primary,
       }).setOrigin(0.5, 1);
       this.add(infoTxt);
     }

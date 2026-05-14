@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import { THEME } from '../ui/theme';
+import { CardFactory } from '../ui/CardFactory';
+import { Transition } from '../ui/Transition';
 import { getGameManager } from '../managers/GameManager';
 import { AbilityManager } from '../managers/AbilityManager';
 import { generateDailyBrief } from '../utils/marketTrend';
@@ -13,30 +16,31 @@ export class PreMarketScene extends Phaser.Scene {
   }
 
   create(): void {
+    Transition.fadeIn(this);
+
     const gm = getGameManager(this);
     const state = gm.state.getState();
     const day = state.currentDay - 1;
 
-    // 背景渐变模拟
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x1a1a2e, 1).setOrigin(0, 0);
+    // 背景
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, THEME.colors.bgPrimary, 1).setOrigin(0, 0);
 
     // 顶部日期栏
-    this.add.rectangle(0, 0, GAME_WIDTH, 60, 0x16213e, 1).setOrigin(0, 0);
+    this.add.rectangle(0, 0, GAME_WIDTH, 60, THEME.colors.bgSecondary, 1).setOrigin(0, 0);
     this.add.text(GAME_WIDTH / 2, 30, `☀️ 第 ${state.currentDay} / ${state.totalDays} 天`, {
-      fontSize: '20px', color: '#ffd700', fontFamily: 'sans-serif',
+      fontSize: '20px', color: '#ffd700', fontFamily: THEME.font.primary,
     }).setOrigin(0.5);
 
     // 资产概览卡片
     const cardY = 76;
-    this.add.rectangle(16, cardY, GAME_WIDTH - 32, 80, 0x1e1e3a, 1)
-      .setOrigin(0, 0).setStrokeStyle(1, 0x333366);
+    CardFactory.create(this, 16, cardY, GAME_WIDTH - 32, 80);
     this.add.text(28, cardY + 12, '💰 流动现金', {
-      fontSize: '12px', color: '#888', fontFamily: 'sans-serif',
+      fontSize: '12px', color: THEME.colors.textSecondary, fontFamily: THEME.font.primary,
     });
     this.add.text(28, cardY + 36, `¥${state.cash.toLocaleString()}`, {
-      fontSize: '22px', color: '#e0e0e0', fontFamily: 'monospace',
+      fontSize: '22px', color: THEME.colors.textPrimary, fontFamily: THEME.font.mono,
     });
-    // 昨日心情（第2天起显示）
+    // 昨日心情
     if (state.dailySnapshots.length > 0) {
       const lastSnap = state.dailySnapshots[state.dailySnapshots.length - 1];
       const emoji = getMoodEmoji(lastSnap.mood);
@@ -47,13 +51,11 @@ export class PreMarketScene extends Phaser.Scene {
 
     // 大盘简报
     const briefY = cardY + 96;
-    this.add.rectangle(16, briefY, GAME_WIDTH - 32, 60, 0x1e1e3a, 1)
-      .setOrigin(0, 0).setStrokeStyle(1, 0x333366);
+    CardFactory.create(this, 16, briefY, GAME_WIDTH - 32, 60);
     this.add.text(28, briefY + 8, '📰 今日市场概览', {
-      fontSize: '13px', color: '#4a90d9', fontFamily: 'sans-serif',
+      fontSize: '13px', color: '#6c5ce7', fontFamily: THEME.font.primary,
     });
 
-    // 获取今日行情数据生成简报
     const stockIds = gm.stocks.getStockIds();
     const todayData: Record<string, DailyStockData> = {};
     for (const id of stockIds) {
@@ -61,13 +63,13 @@ export class PreMarketScene extends Phaser.Scene {
     }
     const brief = generateDailyBrief(todayData);
     this.add.text(28, briefY + 32, brief.summary, {
-      fontSize: '14px', color: '#ccc', fontFamily: 'sans-serif',
+      fontSize: '14px', color: THEME.colors.textPrimary, fontFamily: THEME.font.primary,
     });
 
-    // 股票昨收列表（简化版）
+    // 推荐关注
     const listY = briefY + 80;
     this.add.text(16, listY, '📊 推荐关注', {
-      fontSize: '14px', color: '#ffd700', fontFamily: 'sans-serif',
+      fontSize: '14px', color: '#ffd700', fontFamily: THEME.font.primary,
     });
 
     const recommended = stockIds.filter(id => gm.stocks.isRecommended(id));
@@ -75,14 +77,14 @@ export class PreMarketScene extends Phaser.Scene {
       const dd = todayData[id];
       const prevClose = day > 0 ? gm.stocks.getClosePrice(id, day - 1) : dd.open;
       const change = ((dd.open - prevClose) / prevClose * 100).toFixed(2);
-      const color = dd.open >= prevClose ? '#e74c3c' : '#2ecc71';
+      const color = dd.open >= prevClose ? THEME.colors.rise : THEME.colors.fall;
       const sign = dd.open >= prevClose ? '+' : '';
       const y = listY + 28 + i * 32;
       this.add.text(28, y, `⭐ ${id}`, {
-        fontSize: '14px', color: '#e0e0e0', fontFamily: 'sans-serif',
+        fontSize: '14px', color: THEME.colors.textPrimary, fontFamily: THEME.font.primary,
       });
       this.add.text(GAME_WIDTH - 28, y, `¥${dd.open.toFixed(2)}  ${sign}${change}%`, {
-        fontSize: '13px', color, fontFamily: 'monospace',
+        fontSize: '13px', color, fontFamily: THEME.font.mono,
       }).setOrigin(1, 0);
     });
 
@@ -95,20 +97,20 @@ export class PreMarketScene extends Phaser.Scene {
     const abilityY = listY + recommended.length * 32 + 40;
     if (ability.message) {
       this.add.text(16, abilityY, ability.message, {
-        fontSize: '13px', color: '#4a90d9', fontFamily: 'sans-serif',
+        fontSize: '13px', color: '#6c5ce7', fontFamily: THEME.font.primary,
       });
     }
     if (ability.info) {
       gm.info.addInfo(ability.info);
       this.add.text(16, abilityY + 24,
         `📋 ${ability.info.content}`, {
-        fontSize: '13px', color: '#aaa', fontFamily: 'sans-serif',
+        fontSize: '13px', color: THEME.colors.textSecondary, fontFamily: THEME.font.primary,
         wordWrap: { width: GAME_WIDTH - 32 },
       });
     }
 
-    // 情报按钮（右上角）
-    const infoBtnBg = this.add.rectangle(GAME_WIDTH - 50, 30, 32, 32, 0x333366, 0.8)
+    // 情报按钮
+    const infoBtnBg = this.add.rectangle(GAME_WIDTH - 50, 30, 32, 32, THEME.colors.border, 0.8)
       .setInteractive({ useHandCursor: true });
     this.add.text(GAME_WIDTH - 50, 30, '📋', { fontSize: '18px' }).setOrigin(0.5);
     let infoPanel: InfoPanel | null = null;
@@ -128,24 +130,27 @@ export class PreMarketScene extends Phaser.Scene {
 
     // 底部按钮
     const btnY = GAME_HEIGHT - 100;
-    const tradeBg = this.add.rectangle(GAME_WIDTH / 2, btnY, GAME_WIDTH - 40, 48, 0x4a90d9, 1)
-      .setInteractive({ useHandCursor: true });
-    this.add.text(GAME_WIDTH / 2, btnY, '📈 进入盘中交易', {
-      fontSize: '17px', color: '#fff', fontFamily: 'sans-serif',
-    }).setOrigin(0.5);
-    tradeBg.on('pointerup', () => {
-      gm.state.setPhase('trading');
-      this.scene.start('TradingScene');
-    });
+    CardFactory.createButton(
+      this, GAME_WIDTH / 2, btnY, GAME_WIDTH - 40, 48,
+      '📈 进入盘中交易', {
+        onClick: () => {
+          gm.state.setPhase('trading');
+          Transition.fadeToScene(this, 'TradingScene');
+        },
+      },
+    );
 
-    const skipBg = this.add.rectangle(GAME_WIDTH / 2, btnY + 56, GAME_WIDTH - 40, 40, 0x333366, 0.8)
-      .setInteractive({ useHandCursor: true });
-    this.add.text(GAME_WIDTH / 2, btnY + 56, '⏭️ 不看盘，直接进入盘后', {
-      fontSize: '14px', color: '#aaa', fontFamily: 'sans-serif',
-    }).setOrigin(0.5);
-    skipBg.on('pointerup', () => {
-      gm.state.setPhase('post-market');
-      this.scene.start('PostMarketScene');
-    });
+    CardFactory.createButton(
+      this, GAME_WIDTH / 2, btnY + 56, GAME_WIDTH - 40, 40,
+      '⏭️ 不看盘，直接进入盘后', {
+        color: THEME.colors.border,
+        textColor: THEME.colors.textSecondary,
+        fontSize: '14px',
+        onClick: () => {
+          gm.state.setPhase('post-market');
+          Transition.fadeToScene(this, 'PostMarketScene');
+        },
+      },
+    );
   }
 }

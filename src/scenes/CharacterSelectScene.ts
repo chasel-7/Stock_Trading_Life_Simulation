@@ -1,27 +1,31 @@
 import Phaser from 'phaser';
+import { THEME } from '../ui/theme';
+import { CardFactory } from '../ui/CardFactory';
+import { Transition } from '../ui/Transition';
 import { CHARACTERS, CHARACTER_ORDER } from '../data/characters';
 import { getGameManager } from '../managers/GameManager';
+import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
 
 export class CharacterSelectScene extends Phaser.Scene {
   private selectedIndex = 0;
   private detailTexts: Phaser.GameObjects.Text[] = [];
-  private cardBgs: Phaser.GameObjects.Rectangle[] = [];
+  private cardBgs: Phaser.GameObjects.Graphics[] = [];
 
   constructor() {
     super({ key: 'CharacterSelectScene' });
   }
 
   create(): void {
-    const { width, height } = this.scale;
+    Transition.fadeIn(this);
 
-    this.add.rectangle(0, 0, width, height, 0x1a1a2e, 1).setOrigin(0, 0);
+    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, THEME.colors.bgPrimary, 1).setOrigin(0, 0);
 
-    this.add.text(width / 2, 36, '👤 选择你的角色', {
-      fontSize: '22px', color: '#ffd700', fontFamily: 'sans-serif',
+    this.add.text(GAME_WIDTH / 2, 36, '👤 选择你的角色', {
+      fontSize: '22px', color: '#ffd700', fontFamily: THEME.font.primary,
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, 64, '每个角色是不同的资源约束和策略路线', {
-      fontSize: '12px', color: '#888', fontFamily: 'sans-serif',
+    this.add.text(GAME_WIDTH / 2, 64, '每个角色是不同的资源约束和策略路线', {
+      fontSize: '12px', color: THEME.colors.textSecondary, fontFamily: THEME.font.primary,
     }).setOrigin(0.5);
 
     // 角色卡片
@@ -33,26 +37,26 @@ export class CharacterSelectScene extends Phaser.Scene {
       const char = CHARACTERS[id];
       const y = startY + i * (cardH + gap);
 
-      const bg = this.add.rectangle(width / 2, y + cardH / 2, width - 40, cardH, 0x1e1e3a, 1)
-        .setStrokeStyle(1, 0x333366)
-        .setInteractive({ useHandCursor: true });
+      const bg = CardFactory.create(this, 20, y, GAME_WIDTH - 40, cardH, {
+        interactive: true,
+      });
       this.cardBgs.push(bg);
 
       this.add.text(32, y + 12, `${char.emoji} ${char.name}`, {
-        fontSize: '17px', color: '#e0e0e0', fontFamily: 'sans-serif',
+        fontSize: '17px', color: THEME.colors.textPrimary, fontFamily: THEME.font.primary,
       });
 
       const stars = '★'.repeat(char.difficulty) + '☆'.repeat(5 - char.difficulty);
       this.add.text(32, y + 38, `${char.playstyle} · 难度${stars}`, {
-        fontSize: '11px', color: '#888', fontFamily: 'sans-serif',
+        fontSize: '11px', color: THEME.colors.textSecondary, fontFamily: THEME.font.primary,
       });
 
       this.add.text(32, y + 58, char.specialAbility, {
-        fontSize: '11px', color: '#4a90d9', fontFamily: 'sans-serif',
+        fontSize: '11px', color: '#6c5ce7', fontFamily: THEME.font.primary,
       });
 
-      this.add.text(width - 32, y + cardH / 2, `¥${char.startingCash.toLocaleString()}`, {
-        fontSize: '16px', color: '#e0e0e0', fontFamily: 'monospace',
+      this.add.text(GAME_WIDTH - 32, y + cardH / 2, `¥${char.startingCash.toLocaleString()}`, {
+        fontSize: '16px', color: THEME.colors.textPrimary, fontFamily: THEME.font.mono,
       }).setOrigin(1, 0.5);
 
       bg.on('pointerup', () => {
@@ -64,26 +68,26 @@ export class CharacterSelectScene extends Phaser.Scene {
 
     // 底部详情区
     const detailY = startY + 4 * (cardH + gap) + 10;
-    this.add.rectangle(width / 2, detailY + 40, width - 40, 80, 0x16213e, 1)
-      .setStrokeStyle(1, 0x333366);
+    CardFactory.create(this, 20, detailY, GAME_WIDTH - 40, 80, {
+      fillColor: THEME.colors.bgSecondary,
+    });
 
     const descTxt = this.add.text(32, detailY + 12, '', {
-      fontSize: '13px', color: '#ccc', fontFamily: 'sans-serif',
-      wordWrap: { width: width - 64 },
+      fontSize: '13px', color: THEME.colors.textPrimary, fontFamily: THEME.font.primary,
+      wordWrap: { width: GAME_WIDTH - 64 },
     });
     const statsTxt = this.add.text(32, detailY + 36, '', {
-      fontSize: '12px', color: '#aaa', fontFamily: 'sans-serif',
+      fontSize: '12px', color: THEME.colors.textSecondary, fontFamily: THEME.font.primary,
     });
     this.detailTexts = [descTxt, statsTxt];
 
     // 确认按钮
-    const btnY = height - 60;
-    const confirmBg = this.add.rectangle(width / 2, btnY, width - 40, 48, 0x4a90d9, 1)
-      .setInteractive({ useHandCursor: true });
-    this.add.text(width / 2, btnY, '✅ 确认选择', {
-      fontSize: '17px', color: '#fff', fontFamily: 'sans-serif',
-    }).setOrigin(0.5);
-    confirmBg.on('pointerup', () => this.confirmSelection());
+    CardFactory.createButton(
+      this, GAME_WIDTH / 2, GAME_HEIGHT - 60, GAME_WIDTH - 40, 48,
+      '✅ 确认选择', {
+        onClick: () => this.confirmSelection(),
+      },
+    );
 
     // 默认选中第一个
     this.highlightCard(0);
@@ -92,7 +96,15 @@ export class CharacterSelectScene extends Phaser.Scene {
 
   private highlightCard(index: number): void {
     this.cardBgs.forEach((bg, i) => {
-      bg.setStrokeStyle(i === index ? 2 : 1, i === index ? 0x4a90d9 : 0x333366);
+      bg.clear();
+      const y = 96 + i * 98;
+      const fillColor = i === index ? THEME.colors.bgCardHover : THEME.colors.bgCard;
+      const strokeColor = i === index ? THEME.colors.borderActive : THEME.colors.border;
+      const strokeWidth = i === index ? 2 : 1;
+      bg.fillStyle(fillColor, 1);
+      bg.fillRoundedRect(20, y, GAME_WIDTH - 40, 88, THEME.radius);
+      bg.lineStyle(strokeWidth, strokeColor, i === index ? 1 : 0.6);
+      bg.strokeRoundedRect(20, y, GAME_WIDTH - 40, 88, THEME.radius);
     });
   }
 
@@ -110,6 +122,6 @@ export class CharacterSelectScene extends Phaser.Scene {
     const characterId = CHARACTER_ORDER[this.selectedIndex];
     const gm = getGameManager(this);
     gm.reset(characterId);
-    this.scene.start('PreMarketScene');
+    Transition.fadeToScene(this, 'PreMarketScene');
   }
 }

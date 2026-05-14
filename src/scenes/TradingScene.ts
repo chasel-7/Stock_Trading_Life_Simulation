@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
+import { THEME } from '../ui/theme';
+import { Transition } from '../ui/Transition';
 import { getGameManager } from '../managers/GameManager';
 import { PriceTickEngine } from '../managers/PriceTickEngine';
+import { audioManager } from '../managers/AudioManager';
 import { StockListPanel } from '../ui/StockListPanel';
 import { HoldingsPanel } from '../ui/HoldingsPanel';
 import { TabBar } from '../ui/TabBar';
@@ -23,20 +26,22 @@ export class TradingScene extends Phaser.Scene {
   }
 
   create(): void {
+    Transition.fadeIn(this);
+
     const gm = getGameManager(this);
     const state = gm.state.getState();
     const day = state.currentDay - 1;
 
     // 顶部信息栏
     const topBar = this.add.container(0, 0);
-    const topBg = this.add.rectangle(0, 0, GAME_WIDTH, 50, 0x16213e, 1).setOrigin(0, 0);
+    const topBg = this.add.rectangle(0, 0, GAME_WIDTH, 50, THEME.colors.bgSecondary, 1).setOrigin(0, 0);
     topBar.add(topBg);
     const dayTxt = this.add.text(12, 25, `📈 Day ${state.currentDay}/${state.totalDays}`, {
-      fontSize: '14px', color: '#ffd700', fontFamily: 'sans-serif',
+      fontSize: '14px', color: '#ffd700', fontFamily: THEME.font.primary,
     }).setOrigin(0, 0.5);
     topBar.add(dayTxt);
     const cashTxt = this.add.text(GAME_WIDTH - 12, 25, `💰 ¥${state.cash.toLocaleString()}`, {
-      fontSize: '14px', color: '#e0e0e0', fontFamily: 'monospace',
+      fontSize: '14px', color: THEME.colors.textPrimary, fontFamily: THEME.font.mono,
     }).setOrigin(1, 0.5);
     topBar.add(cashTxt);
 
@@ -91,14 +96,21 @@ export class TradingScene extends Phaser.Scene {
 
       // 更新顶部资金显示
       cashTxt.setText(`💰 ¥${gm.state.getState().cash.toLocaleString()}`);
+
+      // 微弱音效
+      audioManager.playTick();
     });
     this.tickEngine.onFinish(() => this.onMarketClose());
 
     // 收盘按钮
-    const closeBg = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 30, 160, 40, 0xd94a4a, 0.9)
-      .setInteractive({ useHandCursor: true });
+    const closeBg = this.add.graphics();
+    closeBg.fillStyle(THEME.colors.negative, 0.9);
+    closeBg.fillRoundedRect(GAME_WIDTH / 2 - 80, GAME_HEIGHT - 50, 160, 40, 20);
+    const closeHit = new Phaser.Geom.Rectangle(GAME_WIDTH / 2 - 80, GAME_HEIGHT - 50, 160, 40);
+    closeBg.setInteractive(closeHit, Phaser.Geom.Rectangle.Contains);
+    closeBg.input!.cursor = 'pointer';
     this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 30, '🔔 收盘', {
-      fontSize: '16px', color: '#fff', fontFamily: 'sans-serif',
+      fontSize: '16px', color: '#fff', fontFamily: THEME.font.primary,
     }).setOrigin(0.5);
     closeBg.on('pointerup', () => this.onMarketClose());
 
@@ -108,7 +120,6 @@ export class TradingScene extends Phaser.Scene {
       callback: () => this.tickEngine.step(),
       loop: true,
     });
-    // 立即执行第一次
     this.tickEngine.step();
   }
 
@@ -150,8 +161,10 @@ export class TradingScene extends Phaser.Scene {
 
         if (result.type === 'buy') {
           gm.state.buyStock(result.stockId, result.amount, price, gm.getCommissionRate());
+          audioManager.playBuy();
         } else {
           gm.state.sellStock(result.stockId, result.amount, price, gm.getCommissionRate());
+          audioManager.playSell();
         }
       },
     });
@@ -180,6 +193,6 @@ export class TradingScene extends Phaser.Scene {
 
   private onMarketClose(): void {
     if (this.tickTimer) this.tickTimer.destroy();
-    this.scene.start('PostMarketScene');
+    Transition.fadeToScene(this, 'PostMarketScene');
   }
 }
