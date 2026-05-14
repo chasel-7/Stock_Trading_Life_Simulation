@@ -5,6 +5,7 @@ import { PreMarketScene } from '../scenes/PreMarketScene';
 import { TradingScene } from '../scenes/TradingScene';
 import { PostMarketScene } from '../scenes/PostMarketScene';
 import { SettlementScene } from '../scenes/SettlementScene';
+import { ReviewScene } from '../scenes/ReviewScene';
 
 export const GAME_WIDTH = 390;
 export const GAME_HEIGHT = 844;
@@ -19,6 +20,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
-  scene: [BootScene, CharacterSelectScene, PreMarketScene, TradingScene, PostMarketScene, SettlementScene],
+  scene: [BootScene, CharacterSelectScene, PreMarketScene, TradingScene, PostMarketScene, SettlementScene, ReviewScene],
 };
+
 

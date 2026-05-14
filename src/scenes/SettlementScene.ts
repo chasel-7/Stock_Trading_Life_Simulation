@@ -177,7 +177,7 @@ export class SettlementScene extends Phaser.Scene {
         fontSize: '17px', color: '#fff', fontFamily: 'sans-serif',
       }).setOrigin(0.5);
       reviewBg.on('pointerup', () => {
-        this.scene.start('BootScene');
+        this.scene.start('ReviewScene');
       });
     } else {
       const nextBg = this.add.rectangle(GAME_WIDTH / 2, btnY, GAME_WIDTH - 40, 48, 0x4a90d9, 1)
