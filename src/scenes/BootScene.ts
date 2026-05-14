@@ -94,7 +94,7 @@ export class BootScene extends Phaser.Scene {
 
     // 排行榜按钮
     const lbBtnY = SaveManager.hasSave() ? GAME_HEIGHT / 2 + 180 : GAME_HEIGHT / 2 + 130;
-    CardFactory.createButton(
+    const lbBtn = CardFactory.createButton(
       this, GAME_WIDTH / 2, lbBtnY, 240, 44,
       '🏆 排行榜', {
         color: THEME.colors.border,
@@ -104,7 +104,7 @@ export class BootScene extends Phaser.Scene {
       },
     ).setAlpha(0);
     this.tweens.add({
-      targets: this.children.getByName('') || this.children.last,
+      targets: lbBtn,
       alpha: 1, delay: 1400, duration: 400,
     });
 
