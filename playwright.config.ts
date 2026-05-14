@@ -6,6 +6,7 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:5173',
     viewport: { width: 390, height: 844 },
+    channel: 'chrome',
   },
   webServer: {
     command: 'npm run dev',
