@@ -149,6 +149,10 @@ export class PostMarketScene extends Phaser.Scene {
         if (info) {
           gm.info.addInfo(info);
           gm.state.addInfo(info);
+          // 检查情报串联
+          if (gm.info.checkChain(info.stockId)) {
+            result.message += ` 🔗 情报串联触发！${info.stockId} 已获多源验证`;
+          }
         }
       }
 
