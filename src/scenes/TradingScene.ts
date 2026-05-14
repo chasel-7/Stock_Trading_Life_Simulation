@@ -136,6 +136,18 @@ export class TradingScene extends Phaser.Scene {
       holdingValue: holding ? holding.shares * price : 0,
       commissionRate: gm.getCommissionRate(),
       onConfirm: (result) => {
+        // 记录交易
+        gm.tradeLog.log({
+          day: gm.state.getState().currentDay,
+          tickIndex: this.tickEngine.getCurrentIndex(),
+          stockId: result.stockId,
+          type: result.type,
+          price,
+          amount: result.amount,
+          recentTrend: this.getRecentTrend(result.stockId),
+          pnl: result.type === 'sell' ? this.calculatePnl(result.stockId, price) : undefined,
+        });
+
         if (result.type === 'buy') {
           gm.state.buyStock(result.stockId, result.amount, price, gm.getCommissionRate());
         } else {
@@ -143,6 +155,27 @@ export class TradingScene extends Phaser.Scene {
         }
       },
     });
+  }
+
+  private getRecentTrend(stockId: string): 'up' | 'down' | 'flat' {
+    const gm = getGameManager(this);
+    const day = gm.state.getState().currentDay - 1;
+    const dd = gm.stocks.getDailyData(stockId, day);
+    const idx = this.tickEngine.getCurrentIndex();
+    if (idx < 3) return 'flat';
+    const recent = dd.ticks.slice(Math.max(0, idx - 3), idx + 1);
+    const first = recent[0], last = recent[recent.length - 1];
+    if (last > first * 1.01) return 'up';
+    if (last < first * 0.99) return 'down';
+    return 'flat';
+  }
+
+  private calculatePnl(stockId: string, sellPrice: number): number {
+    const gm = getGameManager(this);
+    const holding = gm.state.getState().holdings.find(h => h.stockId === stockId);
+    if (!holding) return 0;
+    const avgCost = holding.costBasis / holding.shares;
+    return (sellPrice - avgCost) * holding.shares;
   }
 
   private onMarketClose(): void {
