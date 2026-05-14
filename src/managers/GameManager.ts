@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import { GameStateManager } from './GameStateManager';
 import { StockManager, type MarketDataPack } from './StockManager';
+import { InfoManager } from './InfoManager';
 import { getCharacter } from '../data/characters';
 
 export class GameManager {
   public state: GameStateManager;
   public stocks: StockManager;
+  public info: InfoManager;
   private marketData: MarketDataPack;
 
   constructor(marketData: MarketDataPack, characterId: string = 'programmer') {
@@ -13,6 +15,7 @@ export class GameManager {
     const char = getCharacter(characterId);
     this.state = new GameStateManager(char.id, char.startingCash, marketData.totalDays);
     this.stocks = new StockManager(marketData);
+    this.info = new InfoManager(this.stocks.getStockIds());
   }
 
   getCommissionRate(): number {
@@ -34,6 +37,7 @@ export class GameManager {
     const char = getCharacter(characterId);
     this.state = new GameStateManager(char.id, char.startingCash, this.marketData.totalDays);
     this.stocks = new StockManager(this.marketData);
+    this.info = new InfoManager(this.stocks.getStockIds());
   }
 }
 
