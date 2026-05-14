@@ -5,6 +5,7 @@ export class TimelineChart extends Phaser.GameObjects.Container {
   private chartWidth: number;
   private chartHeight: number;
   private prices: number[] = [];
+  private lastDrawnLength = 0;
   private openPrice = 0;
   private priceLabelHigh: Phaser.GameObjects.Text;
   private priceLabelLow: Phaser.GameObjects.Text;
@@ -53,10 +54,13 @@ export class TimelineChart extends Phaser.GameObjects.Container {
     this.redraw();
   }
 
-  /** 添加一个tick价格并重绘 */
+  /** 添加一个tick价格并重绘（仅在数据变化时） */
   addTick(price: number): void {
     this.prices.push(price);
-    this.redraw();
+    if (this.prices.length !== this.lastDrawnLength) {
+      this.redraw();
+      this.lastDrawnLength = this.prices.length;
+    }
   }
 
   private redraw(): void {
