@@ -10,7 +10,6 @@ import { calculateMood, getMoodEmoji } from '../utils/moodCalculator';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
 import { MoodLevel } from '../config/constants';
 import { TutorialManager } from '../managers/TutorialManager';
-import { DialogBubble } from '../ui/DialogBubble';
 
 
 export class PostMarketScene extends Phaser.Scene {
@@ -113,32 +112,8 @@ export class PostMarketScene extends Phaser.Scene {
     });
 
     // 教学引导
-    const gm2 = getGameManager(this);
-    const state2 = gm2.state.getState();
-    const tutorial = this.registry.get('tutorialManager') as TutorialManager | undefined;
-    if (tutorial) {
-      const steps = tutorial.getStepsForPhase(state2.currentDay, 'post-market');
-      if (steps.length > 0) {
-        let idx = 0;
-        const showNext = () => {
-          if (idx >= steps.length) return;
-          const step = steps[idx];
-          new DialogBubble(this, {
-            npcName: step.npcName,
-            npcEmoji: step.npcEmoji,
-            message: step.message,
-            highlightArea: step.highlightArea,
-            onDismiss: () => {
-              tutorial.complete(step.id);
-              idx++;
-              showNext();
-            },
-            onSkip: () => tutorial.skipAll(),
-          });
-        };
-        showNext();
-      }
-    }
+    const state = gm.state.getState();
+    TutorialManager.inject(this, state.currentDay, 'post-market');
   }
 
   private selectScene(sc: SceneConfig, effectiveCost: number): void {

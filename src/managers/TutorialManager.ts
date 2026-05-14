@@ -43,4 +43,38 @@ export class TutorialManager {
     this.skipped = true;
     try { localStorage.setItem(STORAGE_KEY, 'true'); } catch { /* noop */ }
   }
+
+  /**
+   * 在场景中注入教学气泡（消除重复代码）。
+   * 使用动态 import 避免与 DialogBubble 的循环依赖。
+   * @param scene Phaser Scene (uses registry to get TutorialManager)
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static inject(scene: any, day: number, phase: string): void {
+    const tutorial = scene.registry?.get('tutorialManager') as TutorialManager | undefined;
+    if (!tutorial) return;
+    const steps = tutorial.getStepsForPhase(day, phase);
+    if (steps.length === 0) return;
+
+    import('../ui/DialogBubble').then(({ DialogBubble }) => {
+      let idx = 0;
+      const showNext = () => {
+        if (idx >= steps.length) return;
+        const step = steps[idx];
+        new DialogBubble(scene, {
+          npcName: step.npcName,
+          npcEmoji: step.npcEmoji,
+          message: step.message,
+          highlightArea: step.highlightArea,
+          onDismiss: () => {
+            tutorial.complete(step.id);
+            idx++;
+            showNext();
+          },
+          onSkip: () => tutorial.skipAll(),
+        });
+      };
+      showNext();
+    });
+  }
 }

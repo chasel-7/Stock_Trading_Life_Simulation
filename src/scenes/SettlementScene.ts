@@ -15,7 +15,6 @@ import type { LifeEvent } from '../data/lifeEvents';
 import type { LifeEventPopupResult } from '../ui/LifeEventPopup';
 import type { SettlementResult } from '../managers/SettlementManager';
 import { TutorialManager } from '../managers/TutorialManager';
-import { DialogBubble } from '../ui/DialogBubble';
 
 export class SettlementScene extends Phaser.Scene {
   constructor() {
@@ -203,34 +202,12 @@ export class SettlementScene extends Phaser.Scene {
 
     // 教学引导
     const state = gm.state.getState();
-    const tutorial = this.registry.get('tutorialManager') as TutorialManager | undefined;
-    if (tutorial) {
-      const steps = tutorial.getStepsForPhase(state.currentDay - 1, 'settlement');
-      if (steps.length > 0) {
-        let idx = 0;
-        const showNext = () => {
-          if (idx >= steps.length) return;
-          const step = steps[idx];
-          new DialogBubble(this, {
-            npcName: step.npcName,
-            npcEmoji: step.npcEmoji,
-            message: step.message,
-            highlightArea: step.highlightArea,
-            onDismiss: () => {
-              tutorial.complete(step.id);
-              idx++;
-              showNext();
-            },
-            onSkip: () => tutorial.skipAll(),
-          });
-        };
-        showNext();
-      }
+    TutorialManager.inject(this, state.currentDay - 1, 'settlement');
 
-      // Day 2结算后标记教学完成
-      if (state.currentDay - 1 >= 2) {
-        tutorial.markTutorialDone();
-      }
+    // Day 2结算后标记教学完成
+    const tutorial = this.registry.get('tutorialManager') as TutorialManager | undefined;
+    if (tutorial && state.currentDay - 1 >= 2) {
+      tutorial.markTutorialDone();
     }
   }
 }

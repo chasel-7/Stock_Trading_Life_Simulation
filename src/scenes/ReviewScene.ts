@@ -147,7 +147,7 @@ export class ReviewScene extends Phaser.Scene {
       let y = 80;
       biases.forEach((b, i) => {
         const container = this.add.container(0, 0).setAlpha(0);
-        const cardBg = CardFactory.create(this.scene.scene, GAME_WIDTH / 2 - (GAME_WIDTH - 32) / 2, y - 45, GAME_WIDTH - 32, 90);
+        const cardBg = CardFactory.create(this, GAME_WIDTH / 2 - (GAME_WIDTH - 32) / 2, y - 45, GAME_WIDTH - 32, 90);
         container.add(cardBg);
         container.add(this.add.text(28, y - 28, `${b.emoji} ${b.name}`, {
           fontSize: '16px', color: THEME.colors.rise, fontFamily: THEME.font.primary,
