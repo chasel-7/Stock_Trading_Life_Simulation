@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { getGameManager } from '../managers/GameManager';
+import { AbilityManager } from '../managers/AbilityManager';
 import { generateDailyBrief } from '../utils/marketTrend';
 import { getMoodEmoji } from '../utils/moodCalculator';
+import { InfoPanel } from '../ui/InfoPanel';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
 import type { DailyStockData } from '../models/types';
 
@@ -82,6 +84,46 @@ export class PreMarketScene extends Phaser.Scene {
       this.add.text(GAME_WIDTH - 28, y, `¥${dd.open.toFixed(2)}  ${sign}${change}%`, {
         fontSize: '13px', color, fontFamily: 'monospace',
       }).setOrigin(1, 0);
+    });
+
+    // 角色特殊能力
+    const ability = AbilityManager.getPreMarketAbility(
+      state.characterId,
+      gm.stocks.getStockIds(),
+      state.currentDay,
+    );
+    const abilityY = listY + recommended.length * 32 + 40;
+    if (ability.message) {
+      this.add.text(16, abilityY, ability.message, {
+        fontSize: '13px', color: '#4a90d9', fontFamily: 'sans-serif',
+      });
+    }
+    if (ability.info) {
+      gm.info.addInfo(ability.info);
+      this.add.text(16, abilityY + 24,
+        `📋 ${ability.info.content}`, {
+        fontSize: '13px', color: '#aaa', fontFamily: 'sans-serif',
+        wordWrap: { width: GAME_WIDTH - 32 },
+      });
+    }
+
+    // 情报按钮（右上角）
+    const infoBtnBg = this.add.rectangle(GAME_WIDTH - 50, 30, 32, 32, 0x333366, 0.8)
+      .setInteractive({ useHandCursor: true });
+    this.add.text(GAME_WIDTH - 50, 30, '📋', { fontSize: '18px' }).setOrigin(0.5);
+    let infoPanel: InfoPanel | null = null;
+    infoBtnBg.on('pointerup', () => {
+      if (infoPanel) {
+        infoPanel.destroy();
+        infoPanel = null;
+        return;
+      }
+      const allInfo = gm.info.getAllInfo();
+      const chainedStocks = gm.stocks.getStockIds().filter(id => gm.info.checkChain(id));
+      infoPanel = new InfoPanel(this, 0, 0, GAME_WIDTH, GAME_HEIGHT, allInfo, chainedStocks, () => {
+        infoPanel?.destroy();
+        infoPanel = null;
+      });
     });
 
     // 底部按钮
