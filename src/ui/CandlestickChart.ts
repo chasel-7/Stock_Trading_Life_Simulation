@@ -30,7 +30,8 @@ export class CandlestickChart extends Phaser.GameObjects.Container {
     }
     this.labels = [];
 
-    const days = dailyData.slice(0, currentDay);
+    // 包含当天数据（currentDay 是 0-indexed）
+    const days = dailyData.slice(0, currentDay + 1);
     if (days.length === 0) return;
 
     const padding = 20;

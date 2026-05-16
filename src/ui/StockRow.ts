@@ -14,18 +14,27 @@ export class StockRow extends Phaser.GameObjects.Container {
   private changeTxt: Phaser.GameObjects.Text;
   private bg: Phaser.GameObjects.Rectangle;
   private flashTimer?: Phaser.Time.TimerEvent;
+  private isRecommendedStock = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, width: number, data: StockRowData) {
     super(scene, x, y);
     scene.add.existing(this);
 
     const ROW_H = 56;
+    this.isRecommendedStock = data.isRecommended;
 
-    // 背景
-    this.bg = scene.add.rectangle(0, 0, width, ROW_H, THEME.colors.bgCard, 0.8)
+    // 背景 — 推荐股使用金色微光底色
+    const bgColor = data.isRecommended ? 0x2a2520 : THEME.colors.bgCard;
+    this.bg = scene.add.rectangle(0, 0, width, ROW_H, bgColor, 0.8)
       .setOrigin(0, 0)
       .setInteractive({ useHandCursor: true });
     this.add(this.bg);
+
+    // 推荐股左侧金色竖条
+    if (data.isRecommended) {
+      const accent = scene.add.rectangle(0, 0, 3, ROW_H, 0xffd700, 1).setOrigin(0, 0);
+      this.add(accent);
+    }
 
     // 推荐股标记
     const prefix = data.isRecommended ? '⭐ ' : '';
@@ -35,6 +44,18 @@ export class StockRow extends Phaser.GameObjects.Container {
       fontSize: '15px', color: THEME.colors.textPrimary, fontFamily: THEME.font.primary,
     }).setOrigin(0, 0.5);
     this.add(nameTxt);
+
+    // 推荐股"荐"标签
+    if (data.isRecommended) {
+      const tagX = nameTxt.x + nameTxt.width + 8;
+      const tagBg = scene.add.rectangle(tagX + 12, ROW_H / 2, 24, 16, 0xffd700, 0.2)
+        .setOrigin(0.5, 0.5);
+      const tagTxt = scene.add.text(tagX + 12, ROW_H / 2, '荐', {
+        fontSize: '10px', color: '#ffd700', fontFamily: THEME.font.primary,
+      }).setOrigin(0.5, 0.5);
+      this.add(tagBg);
+      this.add(tagTxt);
+    }
 
     // 现价
     this.priceTxt = scene.add.text(width - 120, ROW_H / 2, `¥${data.price.toFixed(2)}`, {
@@ -88,7 +109,8 @@ export class StockRow extends Phaser.GameObjects.Container {
       this.flashTimer = this.scene.time.delayedCall(600, () => {
         this.priceTxt.setColor(THEME.colors.textPrimary);
         this.priceTxt.setScale(1);
-        this.bg.setFillStyle(THEME.colors.bgCard, 0.8);
+        const restoreBg = this.isRecommendedStock ? 0x2a2520 : THEME.colors.bgCard;
+        this.bg.setFillStyle(restoreBg, 0.8);
       });
     }
   }

@@ -11,6 +11,7 @@ export class StockDetailPanel extends Phaser.GameObjects.Container {
   private onBuy: () => void = () => {};
   private onSell: () => void = () => {};
   private onBack: () => void = () => {};
+  private currentStockId = '';
 
   constructor(scene: Phaser.Scene, x: number, y: number, width: number, height: number) {
     super(scene, x, y);
@@ -102,6 +103,7 @@ export class StockDetailPanel extends Phaser.GameObjects.Container {
     currentDay: number,
     callbacks: { onBuy: () => void; onSell: () => void; onBack: () => void },
   ): void {
+    this.currentStockId = stockId;
     this.stockNameTxt.setText(stockId);
     this.onBuy = callbacks.onBuy;
     this.onSell = callbacks.onSell;
@@ -119,8 +121,11 @@ export class StockDetailPanel extends Phaser.GameObjects.Container {
     this.setVisible(true);
   }
 
-  addTick(price: number): void {
-    this.timelineChart.addTick(price);
+  /** 按 stockId 过滤的 addTick — 只有当前显示的股票才更新 */
+  addTick(stockId: string, price: number): void {
+    if (stockId === this.currentStockId && this.visible) {
+      this.timelineChart.addTick(price);
+    }
   }
 
   hide(): void {

@@ -21,6 +21,7 @@ export class TradingScene extends Phaser.Scene {
   private detailPanel!: StockDetailPanel;
   private orderDialog!: OrderDialog;
   private tickTimer?: Phaser.Time.TimerEvent;
+  private cashTxt!: Phaser.GameObjects.Text;
   private closed = false;
 
   constructor() {
@@ -42,16 +43,21 @@ export class TradingScene extends Phaser.Scene {
       fontSize: '14px', color: '#ffd700', fontFamily: THEME.font.primary,
     }).setOrigin(0, 0.5);
     topBar.add(dayTxt);
-    const cashTxt = this.add.text(GAME_WIDTH - 12, 25, `💰 ¥${state.cash.toLocaleString()}`, {
+    this.cashTxt = this.add.text(GAME_WIDTH - 12, 25, `💰 ¥${state.cash.toLocaleString()}`, {
       fontSize: '14px', color: THEME.colors.textPrimary, fontFamily: THEME.font.mono,
     }).setOrigin(1, 0.5);
-    topBar.add(cashTxt);
+    topBar.add(this.cashTxt);
 
     // Tab栏
     const tabY = 50;
     new TabBar(this, 0, tabY, GAME_WIDTH, ['自选股', '持仓'], (idx) => {
       this.stockList.setVisible(idx === 0);
       this.holdingsPanel.setVisible(idx !== 0);
+      // 切换到持仓Tab时强制刷新数据
+      if (idx === 1) {
+        const s = getGameManager(this).state.getState();
+        this.holdingsPanel.refresh(s.holdings, this.tickEngine.getCurrentPrices());
+      }
     });
 
     // 准备股票数据
@@ -96,8 +102,11 @@ export class TradingScene extends Phaser.Scene {
       this.stockList.updateStockPrice(stockId, price, changePercent);
       this.holdingsPanel.refresh(gm.state.getState().holdings, this.tickEngine.getCurrentPrices());
 
+      // 将 tick 转发给个股详情面板（如果正在显示该股票）
+      this.detailPanel.addTick(stockId, price);
+
       // 更新顶部资金显示
-      cashTxt.setText(`💰 ¥${gm.state.getState().cash.toLocaleString()}`);
+      this.cashTxt.setText(`💰 ¥${gm.state.getState().cash.toLocaleString()}`);
 
       // 微弱音效
       audioManager.playTick();
@@ -171,6 +180,10 @@ export class TradingScene extends Phaser.Scene {
           gm.state.sellStock(result.stockId, result.amount, price, gm.getCommissionRate());
           audioManager.playSell();
         }
+
+        // 交易后立即刷新持仓和现金
+        this.holdingsPanel.refresh(gm.state.getState().holdings, this.tickEngine.getCurrentPrices());
+        this.cashTxt.setText(`💰 ¥${gm.state.getState().cash.toLocaleString()}`);
       },
     });
   }

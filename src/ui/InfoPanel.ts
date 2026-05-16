@@ -48,11 +48,25 @@ export class InfoPanel extends Phaser.GameObjects.Container {
     for (const [stockId, items] of Object.entries(grouped)) {
       const isChained = chainedStocks.includes(stockId);
       const headerColor = isChained ? '#ffd700' : '#4a90d9';
-      const chainLabel = isChained ? ' 🔗 已串联' : '';
+      const chainLabel = isChained ? ' 🔗 已验证' : '';
+
+      // 已串联股票金色背景高亮
+      if (isChained) {
+        const blockH = 24 + items.length * 42;
+        const highlight = scene.add.rectangle(0, rowY - 4, width, blockH, 0xffd700, 0.06).setOrigin(0, 0);
+        this.add(highlight);
+      }
 
       this.add(scene.add.text(16, rowY, `${stockId}${chainLabel}`, {
         fontSize: '15px', color: headerColor, fontFamily: 'sans-serif',
       }));
+
+      // 已串联股票右侧确信度标签
+      if (isChained) {
+        this.add(scene.add.text(width - 16, rowY, '高确信', {
+          fontSize: '10px', color: '#ffd700', fontFamily: 'sans-serif',
+        }).setOrigin(1, 0));
+      }
       rowY += 24;
 
       for (const info of items) {
@@ -73,6 +87,14 @@ export class InfoPanel extends Phaser.GameObjects.Container {
         rowY += 24;
       }
       rowY += 8;
+    }
+
+    // 串联统计
+    if (chainedStocks.length > 0) {
+      this.add(scene.add.text(width / 2, rowY + 12,
+        `🔗 已串联验证: ${chainedStocks.length}支股票`, {
+        fontSize: '13px', color: '#ffd700', fontFamily: 'sans-serif',
+      }).setOrigin(0.5));
     }
   }
 }

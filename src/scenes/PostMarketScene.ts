@@ -5,6 +5,7 @@ import { Transition } from '../ui/Transition';
 import { getGameManager } from '../managers/GameManager';
 import { getUnlockedScenes, getRandomEvents } from '../data/scenes';
 import { EventCard } from '../ui/EventCard';
+import { IntelChainPopup } from '../ui/IntelChainPopup';
 import type { SceneConfig, SceneEvent, EventResult } from '../models/sceneTypes';
 import { calculateMood, getMoodEmoji } from '../utils/moodCalculator';
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig';
@@ -157,8 +158,17 @@ export class PostMarketScene extends Phaser.Scene {
         if (info) {
           gm.info.addInfo(info);
           gm.state.addInfo(info);
+
+          // 情报串联检查 — 弹出专门面板
           if (gm.info.checkChain(info.stockId)) {
-            result.message += ` 🔗 情报串联触发！${info.stockId} 已获多源验证`;
+            const verdict = gm.info.generateChainVerdict(info.stockId);
+            if (verdict) {
+              new IntelChainPopup(this, GAME_WIDTH, GAME_HEIGHT, verdict, () => {
+                this.handleSpecialEffect(result.message);
+                this.time.delayedCall(300, () => this.showNextEvent());
+              });
+              return; // 等待弹窗关闭后再继续
+            }
           }
         }
       }
@@ -170,10 +180,11 @@ export class PostMarketScene extends Phaser.Scene {
 
   private handleSpecialEffect(message: string): void {
     const gm = getGameManager(this);
-    if (message.includes('手续费减半3天')) {
-      gm.state.setCommissionDiscount(3);
-    } else if (message.includes('手续费减半1天')) {
-      gm.state.setCommissionDiscount(1);
+    // 匹配 "手续费减半N天" 模式（兼容任意天数）
+    const match = message.match(/手续费减半(\d+)天/);
+    if (match) {
+      const days = parseInt(match[1]);
+      gm.state.setCommissionDiscount(days);
     }
   }
 

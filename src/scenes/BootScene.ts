@@ -13,6 +13,12 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    // 游玩次数（用于解锁随机模式）
+    const PLAY_COUNT_KEY = 'stock-life-play-count';
+    let playCount = 0;
+    try { playCount = parseInt(localStorage.getItem(PLAY_COUNT_KEY) || '0'); } catch { /* noop */ }
+    const randomUnlocked = playCount >= 2;
+
     // 背景
     this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, THEME.colors.bgPrimary, 1).setOrigin(0, 0);
 
@@ -41,25 +47,54 @@ export class BootScene extends Phaser.Scene {
       targets: subtitle, alpha: 1, duration: 600, delay: 700,
     });
 
-    // 新游戏按钮
+    const startNewGame = (useRandom: boolean) => {
+      SaveManager.deleteSave();
+      const switchFn = this.registry.get(useRandom ? 'switchToRandomMarket' : 'switchToFixedMarket') as (() => void) | undefined;
+      if (switchFn) switchFn();
+      try { localStorage.setItem(PLAY_COUNT_KEY, String(playCount + 1)); } catch { /* noop */ }
+      const tutorial = new TutorialManager();
+      if (useRandom) tutorial.skipAll();
+      this.registry.set('tutorialManager', tutorial);
+      Transition.fadeToScene(this, 'CharacterSelectScene');
+    };
+
+    // 新游戏按钮（固定行情）
+    let nextY = GAME_HEIGHT / 2 + 60;
     const newBtn = CardFactory.createButton(
-      this, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60, 240, 48,
-      '🎮 新游戏', {
-        onClick: () => {
-          SaveManager.deleteSave();
-          // 注入教学管理器
-          const tutorial = new TutorialManager();
-          this.registry.set('tutorialManager', tutorial);
-          Transition.fadeToScene(this, 'CharacterSelectScene');
-        },
+      this, GAME_WIDTH / 2, nextY, 240, 48,
+      '🎮 新游戏（固定行情）', {
+        onClick: () => startNewGame(false),
       },
     ).setAlpha(0);
     this.tweens.add({ targets: newBtn, alpha: 1, delay: 1000, duration: 400 });
+    nextY += 56;
+
+    // 随机行情按钮（解锁后显示）
+    if (randomUnlocked) {
+      const randBtn = CardFactory.createButton(
+        this, GAME_WIDTH / 2, nextY, 240, 44,
+        '🎲 新游戏（随机行情）', {
+          color: 0x6c5ce7,
+          fontSize: '14px',
+          onClick: () => startNewGame(true),
+        },
+      ).setAlpha(0);
+      this.tweens.add({ targets: randBtn, alpha: 1, delay: 1100, duration: 400 });
+      nextY += 52;
+    } else {
+      const lockTxt = this.add.text(GAME_WIDTH / 2, nextY,
+        `🔒 完成${2 - playCount}局后解锁随机行情`, {
+        fontSize: '11px', color: THEME.colors.textMuted, fontFamily: THEME.font.primary,
+      }).setOrigin(0.5).setAlpha(0);
+      this.tweens.add({ targets: lockTxt, alpha: 1, delay: 1100, duration: 400 });
+      nextY += 30;
+    }
 
     // 继续游戏
     if (SaveManager.hasSave()) {
+      nextY += 8;
       const contBtn = CardFactory.createButton(
-        this, GAME_WIDTH / 2, GAME_HEIGHT / 2 + 120, 240, 48,
+        this, GAME_WIDTH / 2, nextY, 240, 48,
         '📂 继续游戏', {
           color: THEME.colors.positive,
           onClick: () => {
@@ -86,16 +121,17 @@ export class BootScene extends Phaser.Scene {
       // 存档信息预览
       const saved = SaveManager.load();
       if (saved) {
-        this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 160, `📊 第${saved.currentDay}天 | ¥${saved.cash.toLocaleString()}`, {
+        this.add.text(GAME_WIDTH / 2, nextY + 36, `📊 第${saved.currentDay}天 | ¥${saved.cash.toLocaleString()}`, {
           fontSize: '12px', color: THEME.colors.textMuted, fontFamily: THEME.font.primary,
         }).setOrigin(0.5);
       }
+      nextY += 64;
     }
 
     // 排行榜按钮
-    const lbBtnY = SaveManager.hasSave() ? GAME_HEIGHT / 2 + 180 : GAME_HEIGHT / 2 + 130;
+    nextY += 8;
     const lbBtn = CardFactory.createButton(
-      this, GAME_WIDTH / 2, lbBtnY, 240, 44,
+      this, GAME_WIDTH / 2, nextY, 240, 44,
       '🏆 排行榜', {
         color: THEME.colors.border,
         textColor: THEME.colors.textSecondary,
@@ -109,7 +145,7 @@ export class BootScene extends Phaser.Scene {
     });
 
     // 版本号
-    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 24, 'v1.0 · Stock Life Simulator', {
+    this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 24, 'v1.1 · Stock Life Simulator', {
       fontSize: '11px', color: THEME.colors.textMuted,
       fontFamily: THEME.font.primary,
     }).setOrigin(0.5);

@@ -55,7 +55,7 @@ export const SCENE_CONFIGS: SceneConfig[] = [
     emoji: '📚',
     cost: 100,
     minMood: MoodLevel.SAD,
-    infoDescription: '翻阅投资书籍，手续费减半3天',
+    infoDescription: '翻阅投资书籍，手续费减半5天',
     infoAccuracy: -1,
   },
   {
@@ -178,8 +178,8 @@ export const SCENE_EVENTS: SceneEvent[] = [
   {
     id: 'book-01', sceneId: 'bookstore',
     description: '看到一本《聪明的投资者》', emoji: '📖',
-    optionA: { label: '买下来 ¥60', cost: 60, infoReward: false, infoAccuracy: 0, specialEffect: '手续费减半3天' },
-    optionB: { label: '站着翻翻', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '手续费减半1天' },
+    optionA: { label: '买下来 ¥60', cost: 60, infoReward: false, infoAccuracy: 0, specialEffect: '手续费减半5天' },
+    optionB: { label: '站着翻翻', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '手续费减半2天' },
   },
   {
     id: 'book-02', sceneId: 'bookstore',
@@ -232,6 +232,136 @@ export const SCENE_EVENTS: SceneEvent[] = [
     description: '遇到一位上市公司董秘在泡池', emoji: '♨️',
     optionA: { label: '搭话 ¥200小费给技师制造机会', cost: 200, infoReward: true, infoAccuracy: 0.9, infoContent: '公司近期动向' },
     optionB: { label: '保持低调', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  // === 新增事件：回家 ===
+  {
+    id: 'home-03', sceneId: 'home',
+    description: '翻出一本旧财报，是之前买的投资入门书', emoji: '📖',
+    optionA: { label: '认真读一章', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '手续费减半1天' },
+    optionB: { label: '太累了，扔一边', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'home-04', sceneId: 'home',
+    description: '外卖APP推送了一个限时折扣', emoji: '🛵',
+    optionA: { label: '点一份犒劳自己 ¥40', cost: 40, infoReward: false, infoAccuracy: 0, specialEffect: '心情微微好转' },
+    optionB: { label: '继续泡面，省钱', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  // === 新增事件：公园 ===
+  {
+    id: 'park-03', sceneId: 'park',
+    description: '遇到遛狗的大姐，她老公是上市公司中层', emoji: '🐕',
+    optionA: { label: '搭话聊两句', cost: 0, infoReward: true, infoAccuracy: 0.35, infoContent: '某公司内部管理变动' },
+    optionB: { label: '默默走过', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'park-04', sceneId: 'park',
+    description: '看到广场上有人在争论股市', emoji: '🗣️',
+    optionA: { label: '凑过去听听', cost: 0, infoReward: true, infoAccuracy: 0.2, infoContent: '散户们的主流观点（可能是反指）' },
+    optionB: { label: '这种信息没用', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '保持独立思考' },
+  },
+  // === 新增事件：刷手机 ===
+  {
+    id: 'phone-03', sceneId: 'phone',
+    description: '收到券商APP推送的研报摘要', emoji: '📊',
+    optionA: { label: '仔细阅读', cost: 0, infoReward: true, infoAccuracy: 0.45, infoContent: '某板块估值分析' },
+    optionB: { label: '关掉推送', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'phone-04', sceneId: 'phone',
+    description: '朋友圈有人晒出今天赚了5万', emoji: '💰',
+    optionA: { label: '私聊问他买了什么', cost: 0, infoReward: true, infoAccuracy: 0.25, infoContent: '朋友的持仓（可能已经到顶了）' },
+    optionB: { label: '保持冷静', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '抵抗从众心理' },
+  },
+  // === 新增事件：大排档 ===
+  {
+    id: 'stall-04', sceneId: 'food-stall',
+    description: '老板娘抱怨最近物价涨了不少', emoji: '👩‍🍳',
+    optionA: { label: '顺着话题聊聊消费板块', cost: 0, infoReward: true, infoAccuracy: 0.45, infoContent: '消费端物价趋势感知' },
+    optionB: { label: '专心吃饭', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'stall-05', sceneId: 'food-stall',
+    description: '隔壁桌的人在讨论新能源车', emoji: '🚗',
+    optionA: { label: '加入讨论 请一轮啤酒 ¥50', cost: 50, infoReward: true, infoAccuracy: 0.55, infoContent: '新能源产业链上下游动态' },
+    optionB: { label: '只是听听', cost: 0, infoReward: true, infoAccuracy: 0.25, infoContent: '零碎的行业片段' },
+  },
+  // === 新增事件：书店 ===
+  {
+    id: 'book-03', sceneId: 'bookstore',
+    description: '发现一本绝版的《股票大作手回忆录》', emoji: '📚',
+    optionA: { label: '买下来 ¥120', cost: 120, infoReward: false, infoAccuracy: 0, specialEffect: '手续费减半3天' },
+    optionB: { label: '拍照记下精华段落', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '获得一点投资哲学感悟' },
+  },
+  {
+    id: 'book-04', sceneId: 'bookstore',
+    description: '书架旁一个年轻人正在看财务报表分析', emoji: '🤓',
+    optionA: { label: '交流一下 请他喝杯咖啡 ¥30', cost: 30, infoReward: true, infoAccuracy: 0.5, infoContent: '他研究的某支股票基本面' },
+    optionB: { label: '各看各的', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  // === 新增事件：便利店 ===
+  {
+    id: 'conv-02', sceneId: 'convenience',
+    description: '货架上某品牌新品铺了一整排', emoji: '🧴',
+    optionA: { label: '拍照记下品牌，回去查查上市公司', cost: 0, infoReward: true, infoAccuracy: 0.35, infoContent: '消费品牌市场扩张信号' },
+    optionB: { label: '买瓶水就走', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'conv-03', sceneId: 'convenience',
+    description: '收银台旁的小电视在放财经新闻', emoji: '📺',
+    optionA: { label: '站着看一会儿', cost: 0, infoReward: true, infoAccuracy: 0.4, infoContent: '当日财经要闻摘要' },
+    optionB: { label: '赶紧回去休息', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '早点休息' },
+  },
+  // === 新增事件：酒吧 ===
+  {
+    id: 'bar-04', sceneId: 'bar',
+    description: '调酒师是个兼职炒股的，聊起了技术面', emoji: '🍸',
+    optionA: { label: '请他调杯特饮 ¥80', cost: 80, infoReward: true, infoAccuracy: 0.4, infoContent: '某股技术形态分析' },
+    optionB: { label: '喝自己的', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'bar-05', sceneId: 'bar',
+    description: '角落里两个人在低声讨论公司并购', emoji: '🤫',
+    optionA: { label: '假装打电话靠近偷听', cost: 0, infoReward: true, infoAccuracy: 0.55, infoContent: '某行业并购传闻' },
+    optionB: { label: '别做这种事', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '保持人品' },
+  },
+  // === 新增事件：高级餐厅 ===
+  {
+    id: 'rest-03', sceneId: 'restaurant',
+    description: '邻桌请了一位知名私募基金经理', emoji: '💼',
+    optionA: { label: '主动过去敬酒搭话 ¥200', cost: 200, infoReward: true, infoAccuracy: 0.8, infoContent: '私募基金经理的市场判断' },
+    optionB: { label: '太唐突了，算了', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'rest-04', sceneId: 'restaurant',
+    description: '餐厅经理聊起最近高端消费回暖', emoji: '🥂',
+    optionA: { label: '深入聊聊消费趋势', cost: 0, infoReward: true, infoAccuracy: 0.5, infoContent: '高端消费复苏信号' },
+    optionB: { label: '点头微笑，继续吃', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  // === 新增事件：KTV ===
+  {
+    id: 'ktv-03', sceneId: 'ktv',
+    description: '有个投行的朋友来晚了，满脸兴奋', emoji: '😄',
+    optionA: { label: '问他什么好事', cost: 0, infoReward: true, infoAccuracy: 0.75, infoContent: '投行朋友透露的行业大动作' },
+    optionB: { label: '先让他唱首歌', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  {
+    id: 'ktv-04', sceneId: 'ktv',
+    description: '有人提议赌唱歌输赢', emoji: '🎲',
+    optionA: { label: '参加赌局 ¥200', cost: 200, infoReward: false, infoAccuracy: 0, specialEffect: '50%概率赢回¥400' },
+    optionB: { label: '看热闹就好', cost: 0, infoReward: false, infoAccuracy: 0 },
+  },
+  // === 新增事件：SPA ===
+  {
+    id: 'spa-03', sceneId: 'spa',
+    description: '理疗师说她的好多客户最近都在聊某个行业', emoji: '💆‍♀️',
+    optionA: { label: '好奇问问', cost: 0, infoReward: true, infoAccuracy: 0.4, infoContent: '富人圈子的热门话题方向' },
+    optionB: { label: '闭眼享受', cost: 0, infoReward: false, infoAccuracy: 0, specialEffect: '深度放松' },
+  },
+  {
+    id: 'spa-04', sceneId: 'spa',
+    description: '休息区遇到一位基金公司VP，他在休假', emoji: '🏖️',
+    optionA: { label: '请他喝杯茶聊几句 ¥100', cost: 100, infoReward: true, infoAccuracy: 0.85, infoContent: '机构级别的板块配置方向' },
+    optionB: { label: '尊重人家的假期', cost: 0, infoReward: false, infoAccuracy: 0 },
   },
 ];
 
