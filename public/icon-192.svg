@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect width="192" height="192" fill="#12101f" rx="24"/>
-  <path d="M30 140 L60 120 L80 130 L110 80 L140 60 L162 50" stroke="#ffd700" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="140" cy="60" r="5" fill="#ffd700"/>
-  <text x="96" y="170" text-anchor="middle" fill="#ffd700" font-size="14" font-family="sans-serif">股票人生</text>
-</svg>
