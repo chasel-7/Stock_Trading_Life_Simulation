@@ -1,0 +1,100 @@
+<h2>🧠 心理学联结：引入“压力与精力（情绪指数）”机制</h2>
+<p class="subtitle">为了彻底解决上一版“生活事件太突兀、生活与炒股割裂”的问题，我们可以在玩家精神状态与股市盈亏之间架设一条关键的数值反馈链路。</p>
+
+<div class="section">
+  <h3>❤️ 玩家精神状态与交易面板关联 Mockup</h3>
+  <div class="mockup" style="border-color: rgba(255, 59, 48, 0.3); max-width: 550px; margin: 0 auto; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+    <!-- Status Header -->
+    <div class="mockup-header" style="background: #1C1E24; border-bottom: 1px solid #2C303B; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; color: #F5F5F7;">
+      <div>📅 Day 5 盘中交易中</div>
+      <div style="display: flex; gap: 15px; font-size: 0.8rem;">
+        <span>资产: <strong style="color: #FF453A;">¥18,400 (-12%)</strong></span>
+        <span>精神状态: <strong style="color: #FF9F0A;">😰 焦虑 (压力 85%)</strong></span>
+      </div>
+    </div>
+    
+    <div class="mockup-body" style="background: #15181F; color: #F5F5F7; padding: 15px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem;">
+      <!-- Heavy Stress Warning -->
+      <div style="background: rgba(255, 69, 58, 0.1); border: 1px solid #FF453A; padding: 10px; border-radius: 8px; font-size: 0.75rem; margin-bottom: 15px; color: #FF453A;">
+        <strong>😱 重度焦虑状态 Debuff 生效中：</strong>
+        <ul style="margin-left: 15px; margin-top: 5px; line-height: 1.4;">
+          <li>下单滑点风险：买入/卖出有 5% 概率触发“胖手指”（买错仓位或下错单）</li>
+          <li>恐慌性盯盘：盘中价格跳动速度加快 2 倍，且亏损股票字体剧烈闪烁</li>
+        </ul>
+      </div>
+
+      <!-- Action Card with Stress Relief -->
+      <div style="background: #1C1E24; border-radius: 8px; padding: 12px; border: 1px solid #2C303B;">
+        <strong style="font-size: 0.8rem; color: #8E8E93;">🌙 今晚盘后场景选择预估：</strong>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; font-size: 0.75rem;">
+          <div style="background: #2C2C2E; padding: 8px; border-radius: 6px;">
+            <span>💆 SPA会所</span>
+            <div style="color: #34C759; margin-top: 2px;">压力 -50% | 💰 花费 ¥2000</div>
+          </div>
+          <div style="background: #2C2C2E; padding: 8px; border-radius: 6px;">
+            <span>🍜 大排档</span>
+            <div style="color: #34C759; margin-top: 2px;">压力 -10% | 💰 花费 ¥200</div>
+          </div>
+          <div style="background: #2C2C2E; padding: 8px; border-radius: 6px; opacity: 0.6;">
+            <span>🏠 吃泡面 (压力+5%)</span>
+            <div style="color: #FF453A; margin-top: 2px;">省钱但会更加郁闷</div>
+          </div>
+          <div style="background: #2C2C2E; padding: 8px; border-radius: 6px; border: 1px dashed #FF9F0A;">
+            <span>🏥 心理医生 (强制)</span>
+            <div style="color: #FF9F0A; margin-top: 2px;">若压力达100%强制消费¥3000</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>📌 情绪/压力反馈机制方案选择</h3>
+  <p class="subtitle">让“人性”在游戏中具象化，您偏好哪种反馈深度？</p>
+  
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>全链路闭环 (推荐)</h3>
+        <p>炒股亏损/大仓位抗单增加压力，赚钱减少压力。高压力会导致**交易操作滑点（胖手指概率）**、**恐慌性视觉震颤（UI波动变红闪烁）**，并且如果压力达到100%会强制触发高额医药费。迫使玩家在“赚钱”和“精神健康”间做权衡。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>轻量化数值挂钩</h3>
+        <p>压力值只影响盘后结算事件。高压力会大幅增加盘后“生病住院（扣除流动现金）”或“老婆争吵（扣减资产）”等负面生活事件的随机触发概率，但不直接干扰盘中交易界面的操作。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>无精神状态 (维持原版纯资产版)</h3>
+        <p>不引入“压力”或“情绪”等隐藏数值。玩家只关注账面现金与资产。生活事件纯随机触发，去SPA或去大排档仅仅根据可用现金的丰俭决定。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>方案 A (全闭环) 优势</h4>
+      <ul>
+        <li>完美串联了“生活 simulator”与“炒股交易员”两个部分，生活选择（如泡吧减压）有了核心机制上的必然性</li>
+        <li>极好地模拟了真实散户因亏损导致心智资源耗尽，从而做出一系列情绪化“胖手指”或报复性加仓的赌徒行为</li>
+        <li>极大强化了“所有选择都有价格”——你想省钱回家吃泡面，代价就是压力上升，影响明天的操盘判断</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案 A (全闭环) 挑战</h4>
+      <ul>
+        <li>胖手指机制若设计不当可能会让部分追求精细操作的硬核玩家感到烦躁，概率需要调校得非常温和（如1-5%之间）</li>
+      </ul>
+    </div>
+  </div>
+</div>

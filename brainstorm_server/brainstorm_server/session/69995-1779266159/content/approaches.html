@@ -1,0 +1,42 @@
+<h2>后端架构与模块设计方案</h2>
+<p class="subtitle">我们推荐采用 Approach 1：轻量模块化单体方案</p>
+
+<div class="options">
+  <div class="option" data-choice="approach_monolith" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Approach 1 (推荐)：模块化 FastAPI 单体 + SQLite</h3>
+      <p><b>设计：</b>将核心业务逻辑、数据库模型和校验逻辑打包在一个轻量 FastAPI 服务中，使用 SQLAlchemy (或 SQLModel) 操作 SQLite。</p>
+      <p><b>结构：</b><br>
+        <code>
+        backend/<br>
+        ├── app/ <br>
+        │   ├── models/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# DB 模型 (User, Record, Stock)<br>
+        │   ├── schemas/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# Pydantic 请求/响应模型<br>
+        │   ├── services/&nbsp;&nbsp;&nbsp;&nbsp;# 核心业务 (校验服务, 排行榜服务)<br>
+        │   ├── api/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 路由控制器 (v1/auth, v1/game)<br>
+        │   └── database.py&nbsp;&nbsp;# 数据库连接与 Session 初始化<br>
+        └── main.py&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 入口点
+        </code>
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="approach_redis_cache" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Approach 2：FastAPI + SQLite + Redis (缓存/排行榜版)</h3>
+      <p><b>设计：</b>引入 Redis 作为缓存。每日股票历史数据直接从 Redis 读取以加速校验；全服排行榜分数缓存在 Redis Sorted Sets 中，实现秒级高并发排行更新。</p>
+      <p><b>特点：</b>读性能极佳，但引入了外部依赖，本地开发和部署相对复杂一些。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>为什么推荐 Approach 1？</h3>
+  <ul>
+    <li><b>开发极其迅速：</b>无需配置 Redis 服务，全部依赖均可通过 <code>pip</code> 解决，开发者甚至可以直接通过单条命令启动。</li>
+    <li><b>SQLite 并发足够：</b>我们主要使用 SQLite 进行“写入战绩”和“拉取排行榜”。对于个人项目和中小型发布，SQLite 的读写性能（每秒几千次写入）绰绰有余。</li>
+    <li><b>易于后续集成 Redis：</b>我们的服务层 (Services) 会保持抽象，如果未来并发极高，可以非常平滑地在排行榜模块中引入 Redis。</li>
+  </ul>
+</div>

@@ -1,0 +1,141 @@
+<h2>📈 游戏节奏与交易核心交互变革</h2>
+<p class="subtitle">我们首要解决的是将上一版的“5分钟枯燥盯盘等待”转变为“掌控流速的高精操盘体验”。技术栈已确认为 React + CSS。</p>
+
+<div class="section">
+  <h3>✨ 视觉交互对比 (Phaser 3 Canvas vs. React Fintech UI)</h3>
+  <div class="split">
+    <!-- 旧版 Phaser UI Mockup -->
+    <div class="mockup" style="border-color: rgba(255, 59, 48, 0.3);">
+      <div class="mockup-header" style="background: rgba(255, 59, 48, 0.1); color: var(--error);">🔴 旧版 Phaser 3 游戏引擎渲染</div>
+      <div class="mockup-body" style="background: #222; color: #aaa; font-family: monospace; font-size: 0.8rem; height: 320px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="border-bottom: 1px solid #444; padding-bottom: 5px; display: flex; justify-content: space-between;">
+          <span>[Day 3] 交易中...</span>
+          <span style="color: #ff3b30; animation: blink 1s infinite;">⏳ 剩余时间: 04:32</span>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px; border: 1px dashed #555; margin: 10px 0; border-radius: 4px;">
+          <div style="font-size: 1.2rem; color: #888;">📈 [Phaser Canvas Chart]</div>
+          <div style="color: #666; font-size: 0.75rem; text-align: center;">每秒强制步进价格，不可加速，不可暂停</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button style="flex: 1; background: #333; color: #888; border: 1px solid #444; padding: 8px; border-radius: 4px; cursor: not-allowed;" disabled>【强制等待不可加速】</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 新版 React UI Mockup -->
+    <div class="mockup" style="border-color: rgba(52, 199, 89, 0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.25);">
+      <div class="mockup-header" style="background: rgba(52, 199, 89, 0.1); color: var(--success); display: flex; justify-content: space-between; align-items: center;">
+        <span>🟢 提案 React + Vanilla CSS (仿富途牛牛/Robinhood)</span>
+        <span style="font-size: 0.7rem; background: rgba(52, 199, 89, 0.2); padding: 2px 6px; border-radius: 10px;">Dark Mode</span>
+      </div>
+      <div class="mockup-body" style="background: #15181F; color: #F5F5F7; font-family: -apple-system, BlinkMacSystemFont, sans-serif; height: 320px; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; border-radius: 0 0 12px 12px;">
+        <!-- Trading Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 0.75rem; color: #8E8E93;">账户总资产</div>
+            <div style="font-size: 1.2rem; font-weight: bold; color: #34C759;">¥42,850.00 <span style="font-size: 0.8rem; font-weight: normal;">+12.4%</span></div>
+          </div>
+          <!-- 速度控制器 -->
+          <div style="display: flex; background: #2C2C2E; border-radius: 8px; padding: 2px; gap: 2px; font-size: 0.75rem;">
+            <span style="padding: 4px 8px; border-radius: 6px; cursor: pointer; background: #3A3A3C;">⏸️</span>
+            <span style="padding: 4px 8px; border-radius: 6px; cursor: pointer; background: #0A84FF; color: white; font-weight: bold;">1X</span>
+            <span style="padding: 4px 8px; border-radius: 6px; cursor: pointer;">2X</span>
+            <span style="padding: 4px 8px; border-radius: 6px; cursor: pointer;">5X</span>
+          </div>
+        </div>
+
+        <!-- Sleek Candlestick Chart -->
+        <div style="flex: 1; margin: 10px 0; background: #1C1E24; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #2C303B;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem;">
+            <span style="font-weight: bold;">科技-04 (芯片龙头)</span>
+            <span style="color: #FF453A;">¥24.80 -3.4%</span>
+          </div>
+          <!-- Simulated Chart Bars -->
+          <div style="height: 60px; display: flex; align-items: flex-end; justify-content: space-around; padding: 5px 0;">
+            <div style="width: 8px; height: 30px; background: #34C759; position: relative;"><div style="width: 2px; height: 40px; background: #34C759; position: absolute; left: 3px; bottom: -5px;"></div></div>
+            <div style="width: 8px; height: 45px; background: #34C759; position: relative;"><div style="width: 2px; height: 50px; background: #34C759; position: absolute; left: 3px; bottom: -2px;"></div></div>
+            <div style="width: 8px; height: 25px; background: #FF453A; position: relative;"><div style="width: 2px; height: 35px; background: #FF453A; position: absolute; left: 3px; bottom: -5px;"></div></div>
+            <div style="width: 8px; height: 35px; background: #34C759; position: relative;"><div style="width: 2px; height: 45px; background: #34C759; position: absolute; left: 3px; bottom: -5px;"></div></div>
+            <div style="width: 8px; height: 15px; background: #FF453A; position: relative;"><div style="width: 2px; height: 30px; background: #FF453A; position: absolute; left: 3px; bottom: -10px;"></div></div>
+            <!-- Current Pulse -->
+            <div style="width: 8px; height: 20px; background: #FF453A; position: relative; opacity: 0.8; animation: pulse 1.5s infinite;"><div style="width: 2px; height: 28px; background: #FF453A; position: absolute; left: 3px; bottom: -4px;"></div></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #8E8E93;">
+            <span>09:30</span>
+            <span>11:30 / 13:00</span>
+            <span>15:00</span>
+          </div>
+        </div>
+
+        <!-- User Controls -->
+        <div style="display: flex; gap: 10px; font-size: 0.85rem;">
+          <button style="flex: 1; background: #34C759; border: none; color: white; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">买入 🟢</button>
+          <button style="flex: 1; background: #FF453A; border: none; color: white; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer;">卖出 🔴</button>
+          <button style="flex: 0.6; background: #2C2C2E; border: 1px solid #3A3A3C; color: #8E8E93; padding: 8px; border-radius: 6px; cursor: pointer;">⏭️ 结束盘中</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>⏱️ 核心交易节奏方案选择</h3>
+  <p class="subtitle">请问您倾向于采用哪种盘中交易推进逻辑，以兼顾操盘快感和游玩效率？</p>
+  
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>实时带流速控制制 (推荐)</h3>
+        <p>市场随时间自动跳动。玩家可【暂停】分析、选择【1X/2X/5X】速推进、或直接【跳过】到收盘。体验最接近真实操盘，节奏完全由玩家掌握。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Tick步进制 (回合制)</h3>
+        <p>时间不自动流逝。玩家点击“推进一步（Tick）”时，时间推进15分钟，价格发生变化。方便极度冷静的绝对计算型玩家，但缺乏“盯盘”的实时心跳感。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>行动点限制制 (AP)</h3>
+        <p>将交易日抽象为数个行动机会（例如每天4个行动点）。看盘、买卖、收集消息、喝咖啡等均消耗行动点，用完即强制进入盘后。侧重宏观资源规划，弱化股票盯盘交易。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>方案 A (流速控制) 优势</h4>
+      <ul>
+        <li>最强操盘手代入感，有A股分时图波动的紧张感</li>
+        <li>玩家可以随时暂停思考，或者5倍速快进，解决了“垃圾时间”</li>
+        <li>极易通过CSS微动画做出炫酷的价格红绿闪烁脉冲效果</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案 A (流速控制) 挑战</h4>
+      <ul>
+        <li>需要精细的 React 定时器管理，确保加速/暂停时分时走势图平滑缩放</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes pulse {
+    0% { opacity: 0.6; box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.4); }
+    70% { opacity: 1; box-shadow: 0 0 0 6px rgba(255, 69, 58, 0); }
+    100% { opacity: 0.6; box-shadow: 0 0 0 0 rgba(255, 69, 58, 0); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>

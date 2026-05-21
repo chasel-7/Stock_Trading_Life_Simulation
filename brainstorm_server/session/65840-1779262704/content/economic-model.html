@@ -1,0 +1,105 @@
+<h2>💳 经济模型与破产/杠杆机制革新</h2>
+<p class="subtitle">我们决定废除“现金小额负数即破产”的不合理设定。为了深化“所有选择都有价格”这一核心哲学，我们需要重塑破产与债务机制。</p>
+
+<div class="section">
+  <h3>⚡ 杠杆与强平界面 Mockup (融资账户视图)</h3>
+  <div class="mockup" style="border-color: rgba(10, 132, 255, 0.3); max-width: 600px; margin: 0 auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+    <div class="mockup-header" style="background: rgba(10, 132, 255, 0.1); color: #0A84FF; display: flex; justify-content: space-between; align-items: center;">
+      <span>🏦 证券信用账户 (借贷与融资)</span>
+      <span style="font-size: 0.75rem; background: #FF9F0A; color: #1D1D1F; padding: 2px 8px; border-radius: 4px; font-weight: bold; animation: pulse-warn 1.5s infinite;">⚠️ 维持比例吃紧</span>
+    </div>
+    <div class="mockup-body" style="background: #1C1E24; color: #F5F5F7; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+      <!-- Total Info Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #2C303B; padding-bottom: 15px;">
+        <div>
+          <div style="font-size: 0.75rem; color: #8E8E93;">总资产 (Net Assets)</div>
+          <div style="font-size: 1.3rem; font-weight: bold; color: #34C759;">¥32,450.00</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #8E8E93;">流动现金 (Cash)</div>
+          <div style="font-size: 1.3rem; font-weight: bold; color: #FF453A;">-¥1,550.00 <span style="font-size: 0.75rem; font-weight: normal; color: #8E8E93;">(负债)</span></div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #8E8E93;">融资本金 (Debt)</div>
+          <div style="font-size: 1.1rem; font-weight: bold; color: #FF453A;">¥15,000.00</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: #8E8E93;">维持担保比例</div>
+          <div style="font-size: 1.1rem; font-weight: bold; color: #FF9F0A;">142% <span style="font-size: 0.7rem; font-weight: normal; color: #8E8E93;">(预警线150% / 强平线130%)</span></div>
+        </div>
+      </div>
+
+      <!-- Warning message -->
+      <div style="background: rgba(255, 159, 10, 0.15); border: 1px solid #FF9F0A; padding: 12px; border-radius: 8px; font-size: 0.8rem; margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+        <span style="font-size: 1.2rem;">⚠️</span>
+        <div style="color: #FF9F0A; line-height: 1.4;">
+          <strong>追保警告 (Margin Call)！</strong><br>
+          如明日收盘前维持担保比例低于 130%，系统将在日终结算时以 95% 的折价率<strong>强制卖出持仓股票</strong>以填补现金缺口。
+        </div>
+      </div>
+
+      <!-- Info details -->
+      <div style="font-size: 0.75rem; color: #8E8E93; line-height: 1.6;">
+        <div>⏰ 每日利息：¥15,000 × 0.1% = <strong>¥15.00/天</strong> (随日结算自动扣除)</div>
+        <div>💡 破产条件：总资产 (Net Assets) ≤ 0 或被强平后仍无法偿清负债</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>💸 破产与利息/强平机制方案选择</h3>
+  <p class="subtitle">如何重塑游戏的流动性危机？请选择最契合您预期的方案：</p>
+  
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>引入融资与强平机制 (推荐)</h3>
+        <p>支持现金变为负数（即负债）。每日产生万分之五或百分之一的利息。当 <strong>负债 / 总资产 > 70%</strong>（维持担保比例吃紧）时触发 Margin Call。若不及时主动卖股还债，日终将以 <strong>95% 强制折价平仓</strong>。这极致地模拟了“赌徒输红眼”的贪婪与强平惩罚。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>每日自动垫付平仓 (Auto-Liquidation)</h3>
+        <p>不允许现金过夜为负。日结算时，若现金不足以支付生活成本或事件支出，系统在结算时刻<strong>强制按当前收盘价自动卖出价值对应的股票</strong>以补足头寸。虽免去了复杂的融资预警，但丧失了杠杆和利息的策略趣味性。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>保留无杠杆但软化破产惩罚</h3>
+        <p>现金不可为负。如在结算时现金不足，会强制弹出“应急借贷”或“变卖家产”等随机悲惨生活事件（例如：将电脑以极低价抵押给亲友，或者身体不适去借高利贷）。以此保护玩家不直接 Game Over，但无法进行主动杠杆交易。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>方案 A (融资强平) 优势</h4>
+      <ul>
+        <li>高度还原现实股票市场的“杠杆陷阱”，完美展现贪婪人性</li>
+        <li>利息系统给玩家施加隐性时间成本，迫使玩家提高资金周转率</li>
+        <li>允许玩家在有把握的重组利好下“孤注一掷”加杠杆，博取超额收益</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案 A (融资强平) 挑战</h4>
+      <ul>
+        <li>实现难度相对较高，需在核心数据流中引入负债、利息和强平线的状态管理</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes pulse-warn {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+</style>

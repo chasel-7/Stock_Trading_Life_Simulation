@@ -1,0 +1,61 @@
+:root {
+    --bg-dark: #0f0f12;
+    --card-bg: rgba(25, 25, 35, 0.65);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --neon-green: #00e676;
+    --neon-red: #ff1744;
+    --text-white: #ffffff;
+    --text-gray: #90a4ae;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.neon-btn-green {
+    background: transparent;
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.neon-btn-green:hover {
+    background: var(--neon-green);
+    color: #000;
+    box-shadow: 0 0 10px var(--neon-green);
+}
+
+@keyframes pop-glow {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.elo-change-badge {
+    animation: pop-glow 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    font-size: 32px;
+    font-weight: bold;
+    text-shadow: 0 0 15px currentColor;
+    margin: 15px 0;
+}
+

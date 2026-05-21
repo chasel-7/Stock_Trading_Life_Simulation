@@ -1,0 +1,98 @@
+<h2>后端架构与PVP扩展 — 完整技术设计</h2>
+<p class="subtitle">请确认以下架构方案，满意后我们将写入游戏设计规格说明书</p>
+
+<div class="section">
+  <h3>1. 技术栈与系统边界</h3>
+  <table style="width: 100%; border-collapse: collapse; margin-top: 10px; color: #a9b7c6; font-size: 0.9rem;">
+    <tr style="border-bottom: 1px solid #323238;">
+      <td style="padding: 8px; font-weight: bold; color: #ffc66d; width: 30%;">后端框架</td>
+      <td style="padding: 8px;">Python 3.11+ / FastAPI (基于 Starlette 与 Pydantic，高性能且开发敏捷)</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #323238;">
+      <td style="padding: 8px; font-weight: bold; color: #ffc66d;">关系型数据库</td>
+      <td style="padding: 8px;">SQLite (单文件存储，采用 SQLAlchemy / SQLModel ORM 驱动，开发零运维成本)</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #323238;">
+      <td style="padding: 8px; font-weight: bold; color: #ffc66d;">持久连接层</td>
+      <td style="padding: 8px;">FastAPI WebSockets (处理 PVP 房间加入、心跳维持、匹配队列状态下发)</td>
+    </tr>
+    <tr style="border-bottom: 1px solid #323238;">
+      <td style="padding: 8px; font-weight: bold; color: #ffc66d;">离线优先 (Frontend)</td>
+      <td style="padding: 8px;">React 18 + LocalStorage。日常单机或对局中的股票看盘、场景选择在本地实时渲染，对局结束时统一提交校验。</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <h3>2. 核心数据库表结构设计 (ORM)</h3>
+  <div style="background: #1e1e24; color: #a9b7c6; padding: 1.2rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; line-height: 1.5; border: 1px solid #323238;">
+    <b>users (用户表)</b><br>
+    - id: VARCHAR (主键, 微信 OpenID 或游客 UUID)<br>
+    - username: VARCHAR (玩家昵称)<br>
+    - avatar_url: VARCHAR (头像链接)<br>
+    - elo_rating: INTEGER (PVP 天梯匹配分, 默认 1200)<br>
+    - created_at: DATETIME<br>
+    <br>
+    <b>game_records (游戏结算记录表)</b><br>
+    - id: INTEGER (自增主键)<br>
+    - user_id: VARCHAR (外键)<br>
+    - role_type: VARCHAR (角色：互联网人/销售经理...)<br>
+    - final_cash: FLOAT (最终流动资金)<br>
+    - final_assets: FLOAT (最终总资产)<br>
+    - profit_rate: FLOAT (最终收益率)<br>
+    - transaction_log: TEXT (以 JSON 存储的交易明细：[ {day, stock, type, price, qty}, ... ])<br>
+    - score_metrics: TEXT (结算四维雷达图得分及称号)<br>
+    - is_verified: BOOLEAN (是否通过防作弊重放校验)<br>
+    - created_at: DATETIME<br>
+    <br>
+    <b>pvp_matches (PVP 对局房间表)</b><br>
+    - id: VARCHAR (UUID, 主键)<br>
+    - match_seed: VARCHAR (生成相同行情和事件的随机种子)<br>
+    - status: VARCHAR (MATCHING / PLAYING / FINISHED)<br>
+    - total_players: INTEGER (对局人数, 默认 4)<br>
+    - duration_limit: INTEGER (最大限制时长，单位秒，默认 900 秒 / 15分钟)<br>
+    - created_at: DATETIME<br>
+    <br>
+    <b>pvp_participants (PVP 玩家状态关联表)</b><br>
+    - match_id: VARCHAR (复合主键, 外键)<br>
+    - user_id: VARCHAR (复合主键, 外键)<br>
+    - current_day: INTEGER (当前进展天数, 0~15)<br>
+    - current_assets: FLOAT (实时资产，用于生成局内排行榜)<br>
+    - final_assets: FLOAT (游戏结束时的最终资产)<br>
+    - is_finished: BOOLEAN (是否在时限内完成了游戏)<br>
+    - earned_elo: INTEGER (本局积分增减)
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. 防作弊重放验证流程</h3>
+  <div style="background: #1e1e24; color: #a9b7c6; padding: 1.2rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; line-height: 1.5; border: 1px solid #323238;">
+    1. <b>种子回溯校验</b>：后端根据对局对应的 <code>match_seed</code> 预先重跑行情，拿到每日每支股票的真实价格波动区间。<br>
+    2. <b>日志重放计算</b>：<br>
+    &nbsp;&nbsp;&nbsp;- 初始资金 ➔ 结合 <code>transaction_log</code> 中的买卖点。<br>
+    &nbsp;&nbsp;&nbsp;- 验证买入/卖出时的股票价格是否在该交易日该股票的最高/最低价区间内。若偏离超过合理阈值（滑点误差），直接判定为作弊！<br>
+    &nbsp;&nbsp;&nbsp;- 重算交易手续费、每日生活费和角色日薪扣减。<br>
+    3. <b>终审</b>：若重算结果与客户端上报的 <code>final_assets</code> 误差 < 0.01%，判定为“验证通过”；否则记为作弊。
+  </div>
+</div>
+
+<div class="section">
+  <h3>4. 异步 PVP 匹配与结算机制</h3>
+  <ul>
+    <li><b>匹配大厅与在线队列</b>：FastAPI 内存中维护一个 <code>MatchmakingQueue</code>。玩家点击匹配，加入相应分段的队列（基于 <code>elo_rating</code> ± 200）。</li>
+    <li><b>游戏开始</b>：满 4 人时，后端创建 <code>pvp_matches</code> 记录，广播 <code>match_id</code> 和 <code>match_seed</code>，玩家进入单人游戏副本。</li>
+    <li><b>实时进度广播</b>：当玩家在本地过完一天，客户端发送一次轻量级心跳数据包 <code>{day: x, assets: y}</code>。后端接收后更新 <code>pvp_participants</code>，并通过 WebSocket 广播给同房间其他人，更新局内实时排行榜，提升对抗紧张感。</li>
+    <li><b>超时与强制结算</b>：对局创建 15 分钟后，后端定时任务扫描。未完赛的玩家状态标记为 <code>is_finished = false</code>，按已提交的最晚一天资产进行强制结算，并扣除天梯分。</li>
+    <li><b>天梯分 Elo 结算公式</b>：根据 4 人的最终资产排名发放 Elo 积分，例如第一名 +30 分，第二名 +10 分，第三名 -10 分，第四名 -30 分。</li>
+  </ul>
+</div>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="design_approved" onclick="toggleSelect(this)">
+    <div class="letter">✓</div>
+    <div class="content">
+      <h3>确认以上方案并写入规格说明书</h3>
+      <p>没有异议，将直接把这套技术方案写入 markdown 规格书中并清除测试阶段的“一二三阶段分期”。</p>
+    </div>
+  </div>
+</div>

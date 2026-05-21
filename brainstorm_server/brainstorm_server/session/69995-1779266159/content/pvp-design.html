@@ -1,0 +1,89 @@
+<h2>多人 PVP 匹配模式设计方案</h2>
+<p class="subtitle">如何扩展支持多人联机、公平交易竞技</p>
+
+<div class="section">
+  <h3>1. PVP 核心业务流程 (以 4 人匹配为例)</h3>
+  <div style="background: #1e1e24; color: #a9b7c6; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; line-height: 1.6; border: 1px solid #323238;">
+    <span style="color: #ffc66d;">【第一步：加入队列】</span><br>
+    玩家点击“多人竞技” ➔ 客户端连接 WebSocket ➔ 后端将玩家放入 Redis/内存 匹配队列。<br>
+    <br>
+    <span style="color: #ffc66d;">【第二步：房间创建与发牌（Seed）】</span><br>
+    匹配满 4 人 ➔ 后端生成一个全局唯一的随机种子（Seed） ➔ <b>使用该 Seed 生成 15 支相同的股票和完全一样的 5 天行情/事件</b>（确保绝对公平） ➔ 广播给所有玩家，开启对局。<br>
+    <br>
+    <span style="color: #ffc66d;">【第三步：双轨制游玩（异步 vs 同步）】</span><br>
+    推荐采用<b>“异步竞赛（Asynchronous PvP）”</b>：每个玩家在各自手机上独立玩，不用互相等待看盘。但玩的是同一套股票。限时 15 分钟内必须完成这局。<br>
+    <br>
+    <span style="color: #ffc66d;">【第四步：终局比拼】</span><br>
+    所有人玩完（或时间截止） ➔ 后端汇总 4 个人的交易日志和资产 ➔ 进行防作弊校验 ➔ 比对最终总资产 ➔ 决出第一名，发放天梯积分（ELo）并广播给这 4 个人。
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. 前后端需要增加的系统设计</h3>
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">📡 后端 (FastAPI + WebSocket + DB)</div>
+      <div class="mockup-body" style="font-size: 0.85rem; padding: 1rem;">
+        <ul>
+          <li><b>WebSocket API</b>：
+            <ul>
+              <li><code>/ws/matchmaking</code>：管理匹配队列。</li>
+              <li><code>/ws/match/{match_id}</code>：实时广播房间内其他玩家的当前天数和资产（如：“玩家B已进入第3天，资产¥50,000”），制造竞争压力。</li>
+            </ul>
+          </li>
+          <li><b>新数据库表</b>：
+            <ul>
+              <li><code>Match</code>：房间表（房间号、Seed、状态、开始时间）。</li>
+              <li><code>MatchParticipant</code>：玩家关联表（加入状态、当前天数、最终资产、是否完赛、盈亏率）。</li>
+            </ul>
+          </li>
+          <li><b>内存队列 (Manager)</b>：管理在线的 WebSocket 连接和心跳检测。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mockup">
+      <div class="mockup-header">📱 前端 (React + Canvas/CSS)</div>
+      <div class="mockup-body" style="font-size: 0.85rem; padding: 1rem;">
+        <ul>
+          <li><b>匹配等待界面</b>：显示已匹配人数（1/4... 4/4），倒计时动画。</li>
+          <li><b>PVP 对局看板 (Widget)</b>：
+            <ul>
+              <li>交易界面顶部或侧边，实时显示对手的进度与盈亏（例如：A: +12% 🟢, B: -5% 🔴）。</li>
+            </ul>
+          </li>
+          <li><b>结算与颁奖礼</b>：
+            <ul>
+              <li>多人的资产曲线同屏对比图。</li>
+              <li>冠亚季军领奖台动效，天梯分（Elo）增减动效。</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. 两种 PVP 模式的对比选择</h3>
+  <div class="options">
+    <div class="option" data-choice="pvp_async" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>异步竞技模式 (推荐)</h3>
+        <p><b>玩法：</b>匹配成功后，大家各自玩自己的（支持暂停），只需在限定时间（如20分钟）内完成5个交易日。后端等所有人提交最终战绩后进行比拼。</p>
+        <p><b>优点：</b>开发极其简单，网络波动不影响玩家操盘，不需要处理多人步调一致的复杂状态同步。</p>
+      </div>
+    </div>
+
+    <div class="option" data-choice="pvp_sync" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>实时同步竞技模式</h3>
+        <p><b>玩法：</b>所有玩家强制同步时间。比如 Day 1 只有 60 秒交易时间，60 秒一到，所有人同时进入盘后场景。盘后场景限时 60 秒选完，然后强行进入 Day 2。</p>
+        <p><b>优点：</b>竞技感强，能看到对手实时买卖，有“抢筹码”或“爆仓”的紧张氛围。</p>
+        <p><b>缺点：</b>网络延迟会严重影响操盘，如果有人掉线会让其他人体验极差，开发逻辑复杂数倍。</p>
+      </div>
+    </div>
+  </div>
+</div>

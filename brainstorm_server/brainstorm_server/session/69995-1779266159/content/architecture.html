@@ -1,0 +1,64 @@
+<h2>系统架构与数据流向设计</h2>
+<p class="subtitle">基于“混合模式（Hybrid）+ 交易日志校验防作弊”方案</p>
+
+<div class="section">
+  <h3>1. 数据流动模型</h3>
+  <div style="background: #1e1e24; color: #a9b7c6; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; line-height: 1.5; border: 1px solid #323238; margin-bottom: 1.5rem;">
+    <div style="color: #6a8759;">// 🎮 客户端 (React + LocalStorage)</div>
+    1. 盘中交易 & 场景决策在本地运行，实现 <span style="color: #cc7832;">0 延迟</span> 体验。<br>
+    2. 每次交易（买入/卖出）在本地追加一条日志：<br>
+    &nbsp;&nbsp;&nbsp;{ day: 3, stock: "科技-07", action: "BUY", price: 23.5, quantity: 500 }<br>
+    <br>
+    <div style="color: #ffc66d;">📊 结算与防作弊 (游戏结束时)</div>
+    3. 客户端发送数据包：{ 角色信息, 最终资产, 交易日志列表 } 到后端。<br>
+    4. <b>后端 (FastAPI)</b> 校验：<br>
+    &nbsp;&nbsp;&nbsp;- 重新模拟交易过程，验证买卖价格是否与数据库中真实股票历史行情一致。<br>
+    &nbsp;&nbsp;&nbsp;- 重新计算日薪、场景扣费和结算资金，校验最终资产数值是否相符。<br>
+    &nbsp;&nbsp;&nbsp;- <b>通过校验：</b>写入数据库，更新排行榜。<br>
+    &nbsp;&nbsp;&nbsp;- <b>校验失败：</b>拒绝写入，标记为作弊。
+  </div>
+</div>
+
+<div class="section">
+  <h3>2. 后端技术选型 (基于 FastAPI)</h3>
+  <p class="subtitle">请选择您期望的数据库和数据存储方案：</p>
+  
+  <div class="options">
+    <div class="option" data-choice="db_sqlite" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>SQLite (单文件)</h3>
+        <p><b>最简开发 & 易部署</b>。无需额外配置数据库服务，适合前期快速上线和中低并发量，数据备份只需复制文件。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="db_postgres" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>PostgreSQL / MySQL</h3>
+        <p><b>生产级关系型数据库</b>。适合高并发和复杂查询，支持集群扩展，为全服排行与数据统计提供更好的支持。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>3. 防作弊与性能权衡</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>混合模式优点</h4>
+      <ul>
+        <li>盘中交易极致流畅，完全不受网络波动影响</li>
+        <li>后端无需维护复杂的在线会话(Session)，服务器成本极低</li>
+        <li>通过后端“交易日志重放校验”，低成本实现 99% 防作弊</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>潜在挑战</h4>
+      <ul>
+        <li>无法防止玩家通过“本地存档回档（SL大法）”来反复刷完美行情</li>
+        <li>如果不使用微信登录，单机游客防作弊难度大（可通过签名机制缓解）</li>
+      </ul>
+    </div>
+  </div>
+</div>

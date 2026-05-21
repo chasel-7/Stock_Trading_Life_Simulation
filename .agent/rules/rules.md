@@ -325,3 +325,11 @@ No PRD → No feature
 No ARCH → No structure
 No REVIEW → No test
 No TEST → No done
+
+
+--------------------------------------------------
+
+## 21. User Preferred Python Environment
+
+All python execution, dependency management, and test suite commands in this repository must use the user's pre-configured virtual environment:
+`/Users/xiangfang/Developer/soft/venv_3.11.9/bin/python` (pip: `/Users/xiangfang/Developer/soft/venv_3.11.9/bin/pip`)

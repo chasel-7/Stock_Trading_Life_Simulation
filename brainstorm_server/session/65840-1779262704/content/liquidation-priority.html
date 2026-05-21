@@ -1,0 +1,93 @@
+<h2>⚙️ 自动平仓（垫付）执行规则设定</h2>
+<p class="subtitle">既然我们采用了“日结算不足时自动卖股平仓（方案 B）”，那么系统在自动执行时应该遵循什么顺序？这不仅影响策略，还对应着经典的投资心理学偏误。</p>
+
+<div class="section">
+  <h3>📊 自动平仓策略配置面板 Mockup (设置界面)</h3>
+  <div class="mockup" style="border-color: rgba(52, 199, 89, 0.3); max-width: 550px; margin: 0 auto; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+    <div class="mockup-header" style="background: rgba(52, 199, 89, 0.1); color: #34C759; font-weight: bold;">🔧 系统设置 - 结算风险控制</div>
+    <div class="mockup-body" style="background: #1C1E24; color: #F5F5F7; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 0.85rem;">
+      <div style="margin-bottom: 15px; color: #8E8E93;">当账户可用现金低于 0 时，系统将按以下设定的优先级自动变现股票，直至现金回正：</div>
+      
+      <!-- Option Card Mockups inside the settings panel -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="background: #2C2C2E; border: 1px solid #3A3A3C; border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="radio" name="mock_rule" checked style="accent-color: #0A84FF;">
+          <div>
+            <strong style="color: #F5F5F7;">【策略一】优先卖出“浮盈最高”的股票</strong>
+            <div style="font-size: 0.75rem; color: #8E8E93; margin-top: 2px;">（心理学：处置效应 — 倾向落袋为安，死守亏损股）</div>
+          </div>
+        </div>
+
+        <div style="background: #2C2C2E; border: 1px solid #3A3A3C; border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="radio" name="mock_rule" style="accent-color: #0A84FF;">
+          <div>
+            <strong style="color: #F5F5F7;">【策略二】优先卖出“浮亏最大”的股票</strong>
+            <div style="font-size: 0.75rem; color: #8E8E93; margin-top: 2px;">（心理学：理性止损 — 切断亏损源头，保住利润种苗）</div>
+          </div>
+        </div>
+
+        <div style="background: #2C2C2E; border: 1px solid #3A3A3C; border-radius: 8px; padding: 12px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+          <input type="radio" name="mock_rule" style="accent-color: #0A84FF;">
+          <div>
+            <strong style="color: #F5F5F7;">【策略三】优先卖出“市值最大”的持仓</strong>
+            <div style="font-size: 0.75rem; color: #8E8E93; margin-top: 2px;">（心理学：流动性至上 — 最小化交易笔数与磨损）</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 15px; font-size: 0.75rem; color: #8E8E93; border-top: 1px solid #2C303B; padding-top: 10px; text-align: center;">
+        💡 <strong>复盘彩蛋：</strong> 结算时的自动平仓选择，将被记录为玩家的“心理偏差诊断”依据！
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>📌 自动平仓优先规则方案选择</h3>
+  <p class="subtitle">您倾向于在游戏中如何应用这一平仓逻辑？</p>
+  
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>玩家可自由配置规则 (推荐)</h3>
+        <p>在设置面板中提供单选。允许玩家根据自己的投资流派（止损流/止盈流）进行配置。如果玩家未配置，则默认采用“优先卖出浮盈最高（处置效应）”。这不仅增加了系统策略感，还完美作为复盘阶段“诊断玩家认知偏差”的数据源。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>系统固定：按持仓占比/市值从大到小平仓</h3>
+        <p>系统自动按持仓市值最大的股进行平仓，直至现金回正。逻辑简单纯粹，代表最纯粹的流动性补足，弱化了主观投资哲学的碰撞。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>系统固定：均摊平仓 (Pro-Rata)</h3>
+        <p>所有持股按比例共同分摊卖出。例如：现金缺口是总持仓市值的 5%，则所有持有的股票各自卖出 5%。这虽然最合理，但由于涉及“碎股交易”（A股不满手不能卖，且碎股计算复杂），且不利于诊断玩家心理偏误。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>方案 A (自由配置) 优势</h4>
+      <ul>
+        <li>完美贴合“所有的选择都有价格”这一哲学，玩家对资产管理有绝对控制权</li>
+        <li>极佳的教育意义。许多玩家会因为贪婪选择“死扛亏损股”，结果导致亏损股越套越深，在复盘时给予其深刻反馈</li>
+        <li>为复盘的【认知偏差诊断（如损失厌恶、处置效应）】提供极其真实的数据模型</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案 A (自由配置) 挑战</h4>
+      <ul>
+        <li>开发时需要建立一套“账户自动平仓选择器”的状态机，依次遍历并执行平仓操作</li>
+      </ul>
+    </div>
+  </div>
+</div>

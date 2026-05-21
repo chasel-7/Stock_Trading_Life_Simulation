@@ -1,0 +1,92 @@
+<h2>📊 股价生成机制：如何实现“预测消息”与“分时波动”的融合</h2>
+<p class="subtitle">上一版的股价变动十分生硬。为了配合“实时加速与跳过”的交易节奏，我们需要一个既能平滑渲染分时图、又能精确控制“利好利空内幕消息”的股价生成模型。</p>
+
+<div class="section">
+  <h3>📉 股价生成与消息映射 Mockup (算法逻辑展示)</h3>
+  <div class="mockup" style="border-color: rgba(10, 132, 255, 0.3); max-width: 600px; margin: 0 auto; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+    <div class="mockup-header" style="background: rgba(10, 132, 255, 0.1); color: #0A84FF; font-weight: bold; display: flex; justify-content: space-between;">
+      <span>🔧 股价波动发生器 (Intraday Price Engine)</span>
+      <span style="font-size: 0.75rem; color: #8E8E93;">今日消息面：板块利好 (目标收盘 +7% ~ +9%)</span>
+    </div>
+    <div class="mockup-body" style="background: #1C1E24; color: #F5F5F7; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+      
+      <!-- Generated Path visualization -->
+      <div style="background: #15181F; border-radius: 8px; padding: 15px; border: 1px solid #2C303B; margin-bottom: 15px;">
+        <div style="font-size: 0.75rem; color: #8E8E93; margin-bottom: 8px; display: flex; justify-content: space-between;">
+          <span>分时模拟曲线 (240个数据点)</span>
+          <span style="color: #34C759; font-weight: bold;">终点收盘: +8.2%</span>
+        </div>
+        <!-- SVG simulated line -->
+        <svg viewBox="0 0 240 60" style="width: 100%; height: 80px; stroke: #34C759; fill: none; stroke-width: 2;">
+          <!-- Baseline -->
+          <line x1="0" y1="40" x2="240" y2="40" stroke="#2C303B" stroke-dasharray="3,3" />
+          <!-- Price Line path -->
+          <path d="M 0 40 
+                   L 20 38 L 40 43 L 60 35 L 80 32 L 100 28 L 120 33 L 140 22 L 160 18 L 180 25 L 200 15 L 220 12 L 240 8" />
+        </svg>
+        <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #8E8E93; margin-top: 5px;">
+          <span>0% (昨日收盘)</span>
+          <span>盘中震荡</span>
+          <span>+8.2% (今日收盘)</span>
+        </div>
+      </div>
+
+      <!-- Logic features -->
+      <div style="font-size: 0.75rem; color: #8E8E93; line-height: 1.5;">
+        <div>1. <strong>日初生成</strong>：在每天开盘前，根据股票基本面和消息面，计算一个【今日目标涨跌幅】（例如：有重大利好，目标为 +8.0%）。</div>
+        <div>2. <strong>随机生成数组</strong>：基于<strong>随机游走模型 (Random Walk)</strong>，叠加目标偏差，预先生成一个包含 240 个元素的数组。</div>
+        <div>3. <strong>时钟驱动指针</strong>：交易开始后，React 组件定时器只需从 0 遍历到 239，渲染对应价格。暂停、2x/5x 速度、直接跳过（直接取数组最后一个元素），均能在 1 行代码内搞定！</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>📌 股价发生器方案选择</h3>
+  <p class="subtitle">您期望如何实现分时线波动的底层模型？</p>
+  
+  <div class="options">
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>目标偏差预生成法 (Target-Biased Pre-generation - 推荐)</h3>
+        <p>开盘前一次性生成 240 步股价数组，该数组的终点严格契合消息面的设定。盘中交易时只需像播放磁带一样顺次读取。完美契合【暂停/加速/直接跳过】功能，无任何计算卡顿风险。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>实时物理漂移生成法 (Real-time Brownian Drift)</h3>
+        <p>每一秒实时计算下一步价格。虽然极其真实，但无法精确控制收盘价符合“预测消息”的区间。且在玩家选择“2x/5x加速”时会给浏览器带来额外的 CPU 计算开销。</p>
+      </div>
+    </div>
+    
+    <div class="option" data-choice="c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>简易粗粒度步进 (Coarse Step Jump)</h3>
+        <p>一天只生成 4 个核心节点（早盘、午盘、收盘等）。不渲染平滑的分时图，只更新数字。开发难度最低，但缺乏“盯盘”的紧张刺激感，不符合富途牛牛/Robinhood 的高级感定位。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>方案 A (预生成法) 优势</h4>
+      <ul>
+        <li>**无缝支持直接跳过 (Skip)**：玩家点击“跳过”时，可瞬间结算当天，代码只需直接取数组第 240 个值，没有任何等待或计算偏差</li>
+        <li>**保证内幕消息 100% 生效**：如果内幕消息是“某芯片股今日必涨停”，那么预生成算法可以确保数组第 240 位就是 +10% 涨停</li>
+        <li>极高的 React 渲染性能，避免了复杂的实时数学运算</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案 A (预生成法) 挑战</h4>
+      <ul>
+        <li>需要在日初加入一步随机游走插值计算，但仅消耗几毫秒，不影响体验</li>
+      </ul>
+    </div>
+  </div>
+</div>
