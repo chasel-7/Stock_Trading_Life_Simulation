@@ -631,68 +631,6 @@ export default function App() {
         }
     };
 
-    const confirmScene = () => {
-        if (selectedScene) {
-            store.addSceneSpend(selectedScene.name, selectedScene.cost);
-            
-            // 根据选中的场景，提取并添加提示线索到 gatheredInfo!
-            if (marketData && marketData.intelligence && marketData.intelligence.length > 0) {
-                const charSum = selectedScene.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                const intelIdx = (charSum + store.day) % marketData.intelligence.length;
-                const intel = marketData.intelligence[intelIdx];
-                
-                let text = "";
-                let type = "neutral";
-                if (intel.direction === "up") {
-                    type = "positive";
-                    text = `根据在【${selectedScene.name}】打听到的内幕，${intel.stock}未来几天预计将迎来一波【${intel.trend}】！`;
-                } else if (intel.direction === "down") {
-                    type = "negative";
-                    text = `在【${selectedScene.name}】听人闲聊得知，${intel.stock}近期面临利空，可能会出现【${intel.trend}】。`;
-                } else {
-                    type = "neutral";
-                    text = `在【${selectedScene.name}】听人提起，${intel.stock}最近多空交织，走势可能以【${intel.trend}】为主。`;
-                }
-                
-                store.addInfoHint({
-                    stock: intel.stock,
-                    source: selectedScene.name,
-                    text: text,
-                    type: type
-                });
-            }
-        }
-
-        if (store.day === 15) {
-            // 第 15 天夜间结算：先完成最后一天的工资和扣费
-            store.nextDay();
-            
-            // 强平检查
-            if (store.cash < 0) {
-                const currentPricesMap = {};
-                if (marketData && marketData.stocks) {
-                    marketData.stocks.forEach((s) => {
-                        currentPricesMap[s] = marketData.prices?.[s]?.[tick] || marketData.bounds?.[s]?.open || 10.0;
-                    });
-                } else {
-                    Object.keys(store.holdings).forEach(s => {
-                        currentPricesMap[s] = 10.0;
-                    });
-                }
-                const res = store.runAutoLiquidation(currentPricesMap);
-                if (!res.success) {
-                    toast.show("第 15 天平仓结束后现金依然低于 0，系统判定破产！", "error", 5000);
-                    handleSettlement(true);
-                    return;
-                }
-            }
-            handleSettlement();
-            return;
-        }
-
-        // 正常的日结过度流程
-        transitionToNextDay();
-    };
 
     const handleSettlement = async (isBankrupt = false) => {
         let initialCash = 30000.0;
@@ -1121,14 +1059,7 @@ export default function App() {
                 </div>
             )}
 
-            {phase === 'DECISION' && selectedScene && (
-                <DecisionCard
-                    sceneName={selectedScene.name}
-                    cost={selectedScene.cost}
-                    description={selectedScene.desc}
-                    onConfirm={confirmScene}
-                />
-            )}
+
 
             {phase === 'SETTLEMENT' && settlementReport && (
                 <div className="game-card" style={{ padding: '30px', maxWidth: '850px', margin: '40px auto', textAlign: 'center', animation: 'cardDrop 0.4s ease forwards' }}>
