@@ -1059,7 +1059,19 @@ export default function App() {
                 </div>
             )}
 
-
+            {phase === 'SCENE_CARDS' && sceneEventCards.length > 0 && (
+                <DecisionCard
+                    sceneName={selectedScene?.name || ''}
+                    cards={sceneEventCards}
+                    currentIndex={currentCardIndex}
+                    onChoice={handleCardChoice}
+                    showResult={showCardResult}
+                    resultText={cardResults.length > 0 ? cardResults[cardResults.length - 1].result : ''}
+                    cardResults={cardResults}
+                    isComplete={cardResults.length === sceneEventCards.length && !showCardResult}
+                    onFinish={() => handleSceneCardsComplete(selectedScene?.name)}
+                />
+            )}
 
             {phase === 'SETTLEMENT' && settlementReport && (
                 <div className="game-card" style={{ padding: '30px', maxWidth: '850px', margin: '40px auto', textAlign: 'center', animation: 'cardDrop 0.4s ease forwards' }}>
