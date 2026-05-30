@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { useState, useEffect, useCallback } from 'react';
 
 /**
  * GameToast — 游戏风格的弹窗通知组件

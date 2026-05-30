@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function StockRow({ stockName, price, holdingQty, onTrade }) {
     const [tradeQty, setTradeQty] = useState(100);

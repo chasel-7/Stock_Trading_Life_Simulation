@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function PVPMonitor({ opponentList }) {
     return (
         <div className="game-card--static" style={{
@@ -8,7 +6,6 @@ export default function PVPMonitor({ opponentList }) {
             bottom: '20px',
             right: '20px',
             width: '260px',
-            maxWidth: '260px',
             zIndex: 1000,
             border: '2px solid var(--crimson)',
             boxShadow: '4px 4px 0px rgba(0,0,0,0.5), 0 0 20px rgba(232, 55, 90, 0.1)',

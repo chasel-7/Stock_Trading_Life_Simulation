@@ -19,7 +19,7 @@ export function diagnoseBiases(transactionLog, dailyPricesHistory) {
     let totalSells = 0;
 
     transactionLog.forEach((tx) => {
-        const { day, stock, type, price } = tx;
+        const { day, stock, type } = tx;
         const history = dailyPricesHistory[stock] || [];
         
         // 我们需要至少前两天的历史价格趋势来判断追涨杀跌

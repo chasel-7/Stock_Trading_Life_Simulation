@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 /**
  * 分时走势图 / 日K蜡烛图 — 可切换

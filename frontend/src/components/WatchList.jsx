@@ -1,4 +1,3 @@
-import React from 'react';
 
 const SECTOR_EMOJIS = {
     "消费": "🛒",

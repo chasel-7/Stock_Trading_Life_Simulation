@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useGameStore } from './store/useGameStore';
 import { api } from './api/client';
 import KLineChart from './components/KLineChart';
@@ -10,7 +10,7 @@ import RadarChart from './components/RadarChart';
 import StockReveal from './components/StockReveal';
 import { useToast, ToastContainer } from './components/GameToast';
 import { diagnoseBiases, calculateRadarMetrics } from './store/diagnostics';
-import { SCENE_EVENTS, drawSceneEvents } from './data/sceneEvents';
+import { drawSceneEvents } from './data/sceneEvents';
 
 const LIFE_EVENTS = [
     {
@@ -45,7 +45,7 @@ const LIFE_EVENTS = [
             },
             {
                 text: "委婉拒绝（股市吃紧）",
-                effect: (store) => {
+                effect: () => {
                     return "你借口资金全套在股市里婉拒了。";
                 }
             }
@@ -173,9 +173,18 @@ const ROLE_OPTIONS = [
     }
 ];
 
+function getRandomItem(array) {
+    if (!array || array.length === 0) return null;
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+function rollChance(chance) {
+    return Math.random() < chance;
+}
+
 export default function App() {
     const store = useGameStore();
-    const [userId, setUserId] = useState('player_' + Math.random().toString(36).substr(2, 5));
+    const [userId, setUserId] = useState(() => 'player_' + Math.random().toString(36).substr(2, 5));
     const [username, setUsername] = useState('天梯大牛');
     const [selectedRole, setSelectedRole] = useState('internet_worker');
     
@@ -241,6 +250,37 @@ export default function App() {
         return syntheses;
     }, [store.gatheredInfo]);
 
+    // 自动渲染盘前晨报的数据生成
+    const generateMorningBriefForDay = useCallback((dayNum, mData) => {
+        const sectors = ["科技", "消费", "制造", "医药", "金融"];
+        const activeSector = sectors[(dayNum * 7) % sectors.length];
+        
+        const allStocks = mData?.stocks || ["科技-01", "消费-01", "制造-01"];
+        const rec1Idx = (dayNum * 13) % allStocks.length;
+        const rec2Idx = (dayNum * 17) % allStocks.length;
+        const rec1 = allStocks[rec1Idx];
+        let rec2 = allStocks[rec2Idx];
+        if (rec2 === rec1) {
+            rec2 = allStocks[(rec2Idx + 1) % allStocks.length];
+        }
+        
+        let extraHint = "";
+        if (store.roleType === 'internet_worker') {
+            const hintStock = allStocks[(dayNum * 23) % allStocks.length];
+            extraHint = `🧑‍💻 职业特权小道消息：传闻主力资金今日将对【${hintStock}】进行洗盘吸筹，请自选防守。`;
+        } else if (store.roleType === 'government_worker' && dayNum % 3 === 1) {
+            extraHint = `👩‍🏫 职业特权宏观研报：政策主导支持【${activeSector}】实体转型，中长线资金流入。`;
+        }
+        
+        setMorningBrief({
+            day: dayNum,
+            activeSector,
+            recommendations: [rec1, rec2],
+            extraHint
+        });
+        setShowMorningBrief(true);
+    }, [store.roleType]);
+
     // 当 day 发生改变，或 phase 转换到 TRADE 时，从后端拉取当天的 15 支股的行情数据
     useEffect(() => {
         if (!store.isPlaying || phase !== 'TRADE') return;
@@ -280,12 +320,15 @@ export default function App() {
         return () => {
             active = false;
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [store.isPlaying, store.day, phase]);
 
     // 控制分时图逐步前进渲染的 tick 定时器
     useEffect(() => {
         if (!store.isPlaying || phase !== 'TRADE' || !marketData) return;
-        setTick(0);
+        setTimeout(() => {
+            setTick(0);
+        }, 0);
         tickIntervalRef.current = setInterval(() => {
             setTick((t) => {
                 if (t >= 239) {
@@ -314,6 +357,7 @@ export default function App() {
             currentPricesMap[s] = marketData.prices[s]?.[tick] || marketData.bounds[s]?.open || 10.0;
         });
         store.updateAssets(currentPricesMap);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [tick, marketData]);
 
     // 初始化连接 WebSocket 开始排队匹配
@@ -366,6 +410,7 @@ export default function App() {
                 is_finished: store.day >= 15
             }));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [store.day, store.assets, store.isPlaying]);
 
     const handleLogin = async () => {
@@ -373,37 +418,6 @@ export default function App() {
         store.setUser(userData);
         const records = await api.getHistory(userData.id);
         setHistory(records);
-    };
-
-    // 自动渲染盘前晨报的数据生成
-    const generateMorningBriefForDay = (dayNum, mData) => {
-        const sectors = ["科技", "消费", "制造", "医药", "金融"];
-        const activeSector = sectors[(dayNum * 7) % sectors.length];
-        
-        const allStocks = mData?.stocks || ["科技-01", "消费-01", "制造-01"];
-        const rec1Idx = (dayNum * 13) % allStocks.length;
-        const rec2Idx = (dayNum * 17) % allStocks.length;
-        const rec1 = allStocks[rec1Idx];
-        let rec2 = allStocks[rec2Idx];
-        if (rec2 === rec1) {
-            rec2 = allStocks[(rec2Idx + 1) % allStocks.length];
-        }
-        
-        let extraHint = "";
-        if (store.roleType === 'internet_worker') {
-            const hintStock = allStocks[(dayNum * 23) % allStocks.length];
-            extraHint = `🧑‍💻 职业特权小道消息：传闻主力资金今日将对【${hintStock}】进行洗盘吸筹，请自选防守。`;
-        } else if (store.roleType === 'government_worker' && dayNum % 3 === 1) {
-            extraHint = `👩‍🏫 职业特权宏观研报：政策主导支持【${activeSector}】实体转型，中长线资金流入。`;
-        }
-        
-        setMorningBrief({
-            day: dayNum,
-            activeSector,
-            recommendations: [rec1, rec2],
-            extraHint
-        });
-        setShowMorningBrief(true);
     };
 
     const transitionToNextDay = () => {
@@ -422,12 +436,12 @@ export default function App() {
             triggerRate *= 0.3; // 降低 70%
             store.setReduceNegEvent(false); // 一次性 buff
         }
-        const triggerEvent = Math.random() < triggerRate;
+        const triggerEvent = rollChance(triggerRate);
         
         if (triggerEvent) {
             const validEvents = LIFE_EVENTS.filter(e => !e.condition || e.condition(store, todayProfitRate));
             if (validEvents.length > 0) {
-                const randomEv = validEvents[Math.floor(Math.random() * validEvents.length)];
+                const randomEv = getRandomItem(validEvents);
                 setActiveLifeEvent(randomEv);
                 setPhase('LIFE_EVENT');
                 return;
@@ -527,7 +541,7 @@ export default function App() {
                 if (marketData && marketData.intelligence && marketData.intelligence.length > 0) {
                     const intelIdx = (card.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + store.day + currentCardIndex) % marketData.intelligence.length;
                     const intel = marketData.intelligence[intelIdx];
-                    const isAccurate = Math.random() < (option.infoQuality || 0.5);
+                    const isAccurate = rollChance(option.infoQuality || 0.5);
 
                     let text, type;
                     if (isAccurate) {
@@ -541,7 +555,7 @@ export default function App() {
                     } else {
                         // 不准确：方向可能反转
                         const fakeDirections = ["up", "down", "flat"];
-                        const fakeDir = fakeDirections[Math.floor(Math.random() * 3)];
+                        const fakeDir = getRandomItem(fakeDirections);
                         type = fakeDir === "up" ? "positive" : fakeDir === "down" ? "negative" : "neutral";
                         const fakeTrend = fakeDir === "up" ? "可能上涨" : fakeDir === "down" ? "可能下跌" : "震荡整理";
                         text = `从【${card.title}】听到传闻，${intel.stock} 近期${fakeTrend}。（消息来源不太可靠）`;
@@ -588,7 +602,7 @@ export default function App() {
                 break;
             }
             case "gamble": {
-                const won = Math.random() < (option.winChance || 0.5);
+                const won = rollChance(option.winChance || 0.5);
                 if (won) {
                     store.addSceneSpend(`${card.title} 赌赢`, -(option.winAmount || 0));
                     resultText = `🎉 手气不错！你赢了 ¥${option.winAmount}！`;
@@ -621,7 +635,7 @@ export default function App() {
         }, 1200);
     };
 
-    const handleSceneCardsComplete = (sceneName) => {
+    const handleSceneCardsComplete = () => {
         // 场景事件全部完成，进入日结算
         if (store.day === 15) {
             store.nextDay();
