@@ -33,6 +33,8 @@ export const useGameStore = create((set, get) => ({
     dailyPricesHistory: {}, // {"科技-01": [day1Close, day2Close, ...]}
     hasLiquidated: false,
     meetingForceEnd: false,
+    doubleSalaryTomorrow: false,
+    reduceNegEvent: false,
 
     setUser: (user) => set({ user }),
     setMeetingForceEnd: (force) => set({ meetingForceEnd: force }),
@@ -40,6 +42,9 @@ export const useGameStore = create((set, get) => ({
     addInfoHint: (hint) => set((state) => ({ gatheredInfo: [...state.gatheredInfo, hint] })),
     addRepayment: (repayment) => set((state) => ({ pendingRepayments: [...state.pendingRepayments, repayment] })),
     setTickRateMultiplier: (multiplier) => set({ tickRateMultiplier: multiplier }),
+    setBookstoreBuff: (days) => set({ bookstoreDaysLeft: days }),
+    setDoubleSalaryTomorrow: (flag) => set({ doubleSalaryTomorrow: flag || false }),
+    setReduceNegEvent: (flag) => set({ reduceNegEvent: flag || false }),
     recordDailyPrices: (bounds) => set((state) => {
         const newHistory = { ...state.dailyPricesHistory };
         Object.entries(bounds).forEach(([stock, bound]) => {
@@ -82,7 +87,9 @@ export const useGameStore = create((set, get) => ({
             tickRateMultiplier: 1.0,
             dailyPricesHistory: {},
             hasLiquidated: false,
-            meetingForceEnd: false
+            meetingForceEnd: false,
+            doubleSalaryTomorrow: false,
+            reduceNegEvent: false
         });
     },
     
@@ -179,6 +186,10 @@ export const useGameStore = create((set, get) => ({
             cost = 100;
         }
         
+        if (state.doubleSalaryTomorrow) {
+            salary *= 2;
+        }
+        
         // 处理到期还款
         const nextDayNum = state.day + 1;
         let repaidCash = 0;
@@ -196,7 +207,8 @@ export const useGameStore = create((set, get) => ({
             cash: state.cash + salary - cost + repaidCash,
             pendingRepayments: remainingRepayments,
             bookstoreDaysLeft: Math.max(0, state.bookstoreDaysLeft - 1),
-            meetingForceEnd: false
+            meetingForceEnd: false,
+            doubleSalaryTomorrow: false
         };
     }),
 

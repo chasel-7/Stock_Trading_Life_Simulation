@@ -390,7 +390,11 @@ export default function App() {
             sales_manager: 0.65,
             government_worker: 0.55
         };
-        const triggerRate = roleProbabilities[store.roleType] || 0.20;
+        let triggerRate = roleProbabilities[store.roleType] || 0.20;
+        if (store.reduceNegEvent) {
+            triggerRate *= 0.3; // 降低 70%
+            store.setReduceNegEvent(false); // 一次性 buff
+        }
         const triggerEvent = Math.random() < triggerRate;
         
         if (triggerEvent) {
@@ -474,6 +478,156 @@ export default function App() {
         } else {
             // 该场景无事件池（不应该发生），直接进入结算
             handleSceneCardsComplete(scene.name);
+        }
+    };
+
+    const handleCardChoice = (option) => {
+        const card = sceneEventCards[currentCardIndex];
+        let resultText = "";
+
+        // 处理额外花费
+        if (option.cost && option.cost > 0) {
+            if (store.cash < option.cost) {
+                toast.show(`现金不足 ¥${option.cost}，无法选择此选项！`, "warning");
+                return;
+            }
+            store.addSceneSpend(`${card.title} 额外花费`, option.cost);
+        }
+
+        switch (option.effect) {
+            case "info": {
+                // 从 intelligence 数据中选一条情报，根据 infoQuality 决定准确度
+                if (marketData && marketData.intelligence && marketData.intelligence.length > 0) {
+                    const intelIdx = (card.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + store.day + currentCardIndex) % marketData.intelligence.length;
+                    const intel = marketData.intelligence[intelIdx];
+                    const isAccurate = Math.random() < (option.infoQuality || 0.5);
+
+                    let text, type;
+                    if (isAccurate) {
+                        // 准确情报：方向正确
+                        type = intel.direction === "up" ? "positive" : intel.direction === "down" ? "negative" : "neutral";
+                        text = intel.direction === "up"
+                            ? `从【${card.title}】获悉，${intel.stock} 近期可能迎来一波【${intel.trend}】！`
+                            : intel.direction === "down"
+                            ? `从【${card.title}】得知，${intel.stock} 近期面临利空，预计【${intel.trend}】。`
+                            : `从【${card.title}】听闻，${intel.stock} 多空交织，走势以【${intel.trend}】为主。`;
+                    } else {
+                        // 不准确：方向可能反转
+                        const fakeDirections = ["up", "down", "flat"];
+                        const fakeDir = fakeDirections[Math.floor(Math.random() * 3)];
+                        type = fakeDir === "up" ? "positive" : fakeDir === "down" ? "negative" : "neutral";
+                        const fakeTrend = fakeDir === "up" ? "可能上涨" : fakeDir === "down" ? "可能下跌" : "震荡整理";
+                        text = `从【${card.title}】听到传闻，${intel.stock} 近期${fakeTrend}。（消息来源不太可靠）`;
+                    }
+
+                    store.addInfoHint({
+                        stock: intel.stock,
+                        source: selectedScene?.name || card.title,
+                        text: text,
+                        type: type,
+                        quality: option.infoQuality || 0.5,
+                    });
+
+                    // 情报串联检查
+                    checkIntelLinking(intel.stock);
+
+                    resultText = `📋 获得情报：${text}`;
+                } else {
+                    resultText = "今晚没有打听到什么有用的消息。";
+                }
+                break;
+            }
+            case "buff": {
+                if (option.buffType === "fee_half_5d") {
+                    store.setBookstoreBuff(5);
+                    resultText = "📖 你获得了「手续费减半」buff，持续 5 个交易日！";
+                } else if (option.buffType === "double_salary") {
+                    store.setDoubleSalaryTomorrow(true);
+                    resultText = "💼 明天你将获得双倍日薪！虽然牺牲了社交时间，但钱包会更鼓。";
+                } else if (option.buffType === "reduce_neg_event") {
+                    store.setReduceNegEvent(true);
+                    resultText = "🎤 你唱得太嗨了！明天的负面事件概率将大幅降低。";
+                }
+                break;
+            }
+            case "money": {
+                const delta = option.moneyDelta || 0;
+                if (delta !== 0) {
+                    store.addSceneSpend(card.title, -delta); // 负的 spend = 收入
+                    resultText = delta > 0
+                        ? `💰 你获得了 ¥${delta}！`
+                        : `💸 你花费了 ¥${Math.abs(delta)}。`;
+                }
+                break;
+            }
+            case "gamble": {
+                const won = Math.random() < (option.winChance || 0.5);
+                if (won) {
+                    store.addSceneSpend(`${card.title} 赌赢`, -(option.winAmount || 0));
+                    resultText = `🎉 手气不错！你赢了 ¥${option.winAmount}！`;
+                } else {
+                    resultText = `😢 可惜，这次运气不太好。你损失了赌注 ¥${option.cost || 0}。`;
+                }
+                break;
+            }
+            case "hint": {
+                resultText = option.hintText || "💭 你获得了一些人生感悟。";
+                break;
+            }
+            case "none":
+            default: {
+                resultText = "你选择了按兵不动，什么也没有发生。";
+                break;
+            }
+        }
+
+        // 展示结果
+        setCardResults(prev => [...prev, { card: card.title, choice: option.text, result: resultText }]);
+        setShowCardResult(true);
+
+        // 1.2s 后切到下一张或完成
+        setTimeout(() => {
+            setShowCardResult(false);
+            if (currentCardIndex + 1 < sceneEventCards.length) {
+                setCurrentCardIndex(prev => prev + 1);
+            } else {
+                handleSceneCardsComplete(selectedScene?.name);
+            }
+        }, 1200);
+    };
+
+    const handleSceneCardsComplete = (sceneName) => {
+        // 场景事件全部完成，进入日结算
+        if (store.day === 15) {
+            store.nextDay();
+            let isBankrupt = false;
+            if (store.cash < 0) {
+                const currentPricesMap = {};
+                if (marketData && marketData.stocks) {
+                    marketData.stocks.forEach((s) => {
+                        currentPricesMap[s] = marketData.prices[s]?.[tick] || marketData.bounds[s]?.open || 10.0;
+                    });
+                } else {
+                    Object.keys(store.holdings).forEach(s => { currentPricesMap[s] = 10.0; });
+                }
+                const res = store.runAutoLiquidation(currentPricesMap);
+                if (!res.success) {
+                    toast.show("第 15 天平仓结束后现金依然低于 0，系统判定破产！", "error", 5000);
+                    isBankrupt = true;
+                }
+            }
+            handleSettlement(isBankrupt);
+        } else {
+            transitionToNextDay();
+        }
+    };
+
+    const checkIntelLinking = (stock) => {
+        const infos = store.gatheredInfo.filter(i => i.stock === stock);
+        const sources = new Set(infos.map(i => i.source));
+        if (sources.size >= 2) {
+            const stars = sources.size >= 3 ? "⭐⭐⭐" : "⭐⭐";
+            toast.show(`💡 情报串联触发！【${stock}】已获 ${sources.size} 条不同来源，置信度 ${stars}`, "success", 4000);
         }
     };
 
