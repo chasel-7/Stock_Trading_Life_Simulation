@@ -10,6 +10,7 @@ import RadarChart from './components/RadarChart';
 import StockReveal from './components/StockReveal';
 import { useToast, ToastContainer } from './components/GameToast';
 import { diagnoseBiases, calculateRadarMetrics } from './store/diagnostics';
+import { SCENE_EVENTS, drawSceneEvents } from './data/sceneEvents';
 
 const LIFE_EVENTS = [
     {
@@ -204,6 +205,11 @@ export default function App() {
     const [liquidationReport, setLiquidationReport] = useState(null);
     const [morningBrief, setMorningBrief] = useState(null);
     const [showMorningBrief, setShowMorningBrief] = useState(false);
+
+    const [sceneEventCards, setSceneEventCards] = useState([]);     // 当前场景抽到的事件卡片
+    const [currentCardIndex, setCurrentCardIndex] = useState(0);   // 当前展示的卡片索引
+    const [cardResults, setCardResults] = useState([]);             // 每张卡片的选择结果文字
+    const [showCardResult, setShowCardResult] = useState(false);    // 是否正在展示选择结果
 
     // 游戏内 Toast 通知
     const toast = useToast();
