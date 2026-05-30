@@ -79,10 +79,10 @@ export default function StockReveal({ stockList }) {
 
     return (
         <div style={{ marginTop: '20px', textAlign: 'left' }}>
-            <h4 style={{ margin: '0 0 12px 0', borderBottom: '1px solid #333', paddingBottom: '6px', color: 'var(--neon-green)' }}>
+            <h4 style={{ margin: '0 0 12px 0', borderBottom: '1px solid #333', paddingBottom: '6px', color: 'var(--amber)', fontFamily: 'var(--font-display)' }}>
                 🔍 现实 A 股上市公司映射揭秘 (点击翻牌)
             </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '12px' }}>
                 {stockList.map((stock) => {
                     const info = getStockRealInfo(stock);
                     const isFlipped = !!flipped[stock];
@@ -94,7 +94,7 @@ export default function StockReveal({ stockList }) {
                             style={{
                                 perspective: '1000px',
                                 width: '100%',
-                                height: '110px',
+                                height: '120px',
                                 cursor: 'pointer'
                             }}
                         >
@@ -117,8 +117,8 @@ export default function StockReveal({ stockList }) {
                                         width: '100%',
                                         height: '100%',
                                         backfaceVisibility: 'hidden',
-                                        background: 'rgba(255, 255, 255, 0.02)',
-                                        border: '1px solid #333',
+                                        background: 'var(--bg-elevated)',
+                                        border: '2px solid var(--border-card)',
                                         borderRadius: '8px',
                                         display: 'flex',
                                         flexDirection: 'column',
@@ -127,9 +127,10 @@ export default function StockReveal({ stockList }) {
                                         boxSizing: 'border-box'
                                     }}
                                 >
-                                    <span style={{ fontSize: '11px', color: 'var(--text-gray)' }}>局内代码</span>
+                                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>局内代码</span>
+                                    <span style={{ fontSize: '28px', opacity: 0.3 }}>?</span>
                                     <strong style={{ fontSize: '14px', color: '#fff', marginTop: '4px' }}>{stock}</strong>
-                                    <span style={{ fontSize: '9px', color: 'var(--neon-green)', marginTop: '8px' }}>点击翻牌 ➔</span>
+                                    <span style={{ fontSize: '9px', color: 'var(--amber)', marginTop: '8px' }}>点击翻牌 ➔</span>
                                 </div>
 
                                 {/* 背面 (Back Face): 显示现实上市公司名字与代码 */}
@@ -142,8 +143,8 @@ export default function StockReveal({ stockList }) {
                                         height: '100%',
                                         backfaceVisibility: 'hidden',
                                         transform: 'rotateY(180deg)',
-                                        background: 'rgba(0, 230, 118, 0.05)',
-                                        border: '1px solid var(--neon-green)',
+                                        background: 'rgba(240, 180, 41, 0.06)',
+                                        border: '1px solid var(--amber)',
                                         borderRadius: '8px',
                                         padding: '8px',
                                         display: 'flex',
@@ -153,10 +154,10 @@ export default function StockReveal({ stockList }) {
                                     }}
                                 >
                                     <div>
-                                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff' }}>{info.name}</div>
-                                        <div style={{ fontSize: '9px', color: 'var(--text-gray)', marginTop: '2px' }}>{info.code}</div>
+                                        <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff', fontFamily: 'var(--font-display)' }}>{info.name}</div>
+                                        <div style={{ fontSize: '9px', color: 'var(--text-secondary)', marginTop: '2px', fontFamily: 'var(--font-data)' }}>{info.code}</div>
                                     </div>
-                                    <div style={{ fontSize: '8px', color: '#ccc', lineHeight: '1.2', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                                    <div style={{ fontSize: '8px', color: 'var(--text-secondary)', lineHeight: '1.2', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
                                         {info.desc}
                                     </div>
                                 </div>

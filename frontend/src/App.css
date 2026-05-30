@@ -1,184 +1,373 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* ============================================================
+   App.css — App-specific overrides and page compositions
+   ============================================================ */
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+/* Game logo title on login page */
+.game-logo-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--amber);
+    text-shadow:
+        0 0 10px var(--amber-glow),
+        2px 2px 0px rgba(0, 0, 0, 0.6);
+    margin: 0 0 8px 0;
+    letter-spacing: 2px;
 }
 
-.hero {
-  position: relative;
+.game-logo-subtitle {
+    font-family: var(--font-data);
+    font-size: 12px;
+    color: var(--text-secondary);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
 
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
+/* Matching radar animation */
+.match-radar {
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--border-card);
+    border-top-color: var(--amber);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
     position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
 }
-
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
-}
-
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
-}
-
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-}
-
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-}
-
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
-}
-
-.ticks {
-  position: relative;
-  width: 100%;
-
-  &::before,
-  &::after {
+.match-radar::after {
     content: '';
     position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: var(--amber);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 12px var(--amber);
+    animation: glowPulse 1.5s ease infinite;
+}
 
-  &::before {
+/* Role selection card */
+.role-card {
+    padding: 14px;
+    cursor: pointer;
+    border: 2px solid var(--border-card);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: all 0.2s ease;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+.role-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
     left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
     right: 0;
-    border-right-color: var(--border);
-  }
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--text-muted), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.role-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-card-lg);
+}
+.role-card:hover::before {
+    opacity: 1;
+}
+.role-card--selected {
+    border-color: var(--amber);
+    background: rgba(240, 180, 41, 0.06);
+    box-shadow: var(--shadow-card), var(--shadow-glow-amber);
+}
+.role-card--selected::before {
+    opacity: 1;
+    background: linear-gradient(90deg, transparent, var(--amber), transparent);
+}
+.role-card .role-icon {
+    font-size: 24px;
+    display: block;
+    margin-bottom: 6px;
+}
+.role-card .role-name {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.role-card .role-stats {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+.role-card .role-perk {
+    font-size: 10px;
+    color: var(--amber);
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border-card);
+    line-height: 1.4;
+}
+
+/* HUD bar for trade phase */
+.hud-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .hud-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+}
+
+.hud-bar .hud-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.hud-bar .hud-right {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .hud-bar .hud-right {
+        text-align: left;
+    }
+}
+
+/* Cash amount styling */
+.cash-amount {
+    font-family: var(--font-data);
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.cash-amount--positive {
+    color: var(--text-primary);
+}
+
+.cash-amount--negative {
+    color: var(--crimson);
+    animation: blink 2s infinite;
+}
+
+/* Day counter pill */
+.day-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-data);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--amber);
+    background: rgba(240, 180, 41, 0.08);
+    border: 1px solid rgba(240, 180, 41, 0.2);
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+/* Scene cards for night phase */
+.scene-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 14px 10px;
+    border: 2px solid var(--border-card);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+}
+.scene-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+    transition: left 0.5s ease;
+}
+.scene-card:hover::after {
+    left: 100%;
+}
+.scene-card:hover {
+    border-color: var(--jade);
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-card-lg), var(--shadow-glow-jade);
+}
+.scene-card .scene-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+.scene-card .scene-cost {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+/* Settlement page */
+.settlement-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+}
+
+@media (max-width: 480px) {
+    .settlement-title {
+        font-size: 20px;
+    }
+    .game-logo-title {
+        font-size: 22px;
+    }
+    .role-card .role-name {
+        font-size: 14px;
+    }
+    .scene-card .scene-name {
+        font-size: 13px;
+    }
+}
+
+/* Settlement grid layout */
+.settlement-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 30px;
+    text-align: left;
+}
+
+@media (max-width: 768px) {
+    .settlement-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+/* History record rows */
+.history-row {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--text-secondary);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Leaderboard player row */
+.leaderboard-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-size: 13px;
+    transition: background 0.15s;
+}
+.leaderboard-row--self {
+    background: rgba(240, 180, 41, 0.06);
+    border-color: var(--amber);
+}
+.leaderboard-row .rank-medal {
+    font-size: 16px;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* Info notebook */
+.info-notebook {
+    max-height: 200px;
+    overflow-y: auto;
+    text-align: left;
+}
+.info-entry {
+    font-size: 11px;
+    color: var(--text-primary);
+    padding: 5px 0;
+    border-bottom: 1px dashed var(--border-subtle);
+    line-height: 1.5;
+}
+.info-synthesis {
+    border: 1px solid var(--amber);
+    background: rgba(240, 180, 41, 0.05);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--text-primary);
+}
+
+/* Bias diagnosis cards */
+.bias-card {
+    background: rgba(232, 55, 90, 0.04);
+    border: 1px solid rgba(232, 55, 90, 0.2);
+    padding: 14px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+}
+.bias-card--clean {
+    background: rgba(10, 207, 131, 0.04);
+    border-color: rgba(10, 207, 131, 0.2);
+}
+.bias-card .bias-name {
+    font-family: var(--font-display);
+    color: var(--crimson);
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+.bias-card .bias-tip {
+    font-size: 11px;
+    color: var(--amber);
+    border-top: 1px dashed var(--border-subtle);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+/* Pretrade info banner */
+.pretrade-banner {
+    border-left: 4px solid var(--amber);
+    background: rgba(232, 163, 23, 0.04);
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+}
+
+/* Meeting lockout warning */
+.meeting-lockout {
+    background: rgba(240, 67, 99, 0.06);
+    border-left: 4px solid var(--crimson);
+    color: var(--crimson);
+    padding: 10px 14px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.6;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    text-align: left;
 }

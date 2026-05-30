@@ -45,7 +45,13 @@ export const useGameStore = create((set, get) => ({
         Object.entries(bounds).forEach(([stock, bound]) => {
             if (!newHistory[stock]) newHistory[stock] = [];
             if (newHistory[stock].length < state.day) {
-                newHistory[stock].push(bound.close);
+                newHistory[stock].push({
+                    day: state.day,
+                    open: bound.open,
+                    high: bound.high,
+                    low: bound.low,
+                    close: bound.close
+                });
             }
         });
         return { dailyPricesHistory: newHistory };

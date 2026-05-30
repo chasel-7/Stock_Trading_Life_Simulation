@@ -8,6 +8,7 @@ import DecisionCard from './components/DecisionCard';
 import WatchList from './components/WatchList';
 import RadarChart from './components/RadarChart';
 import StockReveal from './components/StockReveal';
+import { useToast, ToastContainer } from './components/GameToast';
 import { diagnoseBiases, calculateRadarMetrics } from './store/diagnostics';
 
 const LIFE_EVENTS = [
@@ -193,6 +194,7 @@ export default function App() {
     const [selectedScene, setSelectedScene] = useState(null);
     const [settlementReport, setSettlementReport] = useState(null);
     const wsRef = useRef(null);
+    const tickIntervalRef = useRef(null);
 
     // 盘前提示信息（打工人或体制内青年专属特权）
     const [pretradeMessage, setPretradeMessage] = useState("");
@@ -202,6 +204,9 @@ export default function App() {
     const [liquidationReport, setLiquidationReport] = useState(null);
     const [morningBrief, setMorningBrief] = useState(null);
     const [showMorningBrief, setShowMorningBrief] = useState(false);
+
+    // 游戏内 Toast 通知
+    const toast = useToast();
 
     // 当 day 发生改变，或 phase 转换到 TRADE 时，从后端拉取当天的 15 支股的行情数据
     useEffect(() => {
@@ -248,16 +253,24 @@ export default function App() {
     useEffect(() => {
         if (!store.isPlaying || phase !== 'TRADE' || !marketData) return;
         setTick(0);
-        const interval = setInterval(() => {
+        tickIntervalRef.current = setInterval(() => {
             setTick((t) => {
                 if (t >= 239) {
-                    clearInterval(interval);
+                    if (tickIntervalRef.current) {
+                        clearInterval(tickIntervalRef.current);
+                        tickIntervalRef.current = null;
+                    }
                     return 239;
                 }
                 return t + 1;
             });
         }, 150 / (store.tickRateMultiplier || 1.0));
-        return () => clearInterval(interval);
+        return () => {
+            if (tickIntervalRef.current) {
+                clearInterval(tickIntervalRef.current);
+                tickIntervalRef.current = null;
+            }
+        };
     }, [store.isPlaying, store.day, phase, marketData, store.tickRateMultiplier]);
 
     // tick 价格变动时，实时自动重算用户持仓的总市值与总资产
@@ -403,7 +416,7 @@ export default function App() {
             
             const res = store.runAutoLiquidation(currentPricesMap);
             if (!res.success) {
-                alert("💀 资产自动强平结束后流动现金依然低于 0，系统判定破产！");
+                toast.show("资产自动强平结束后流动现金依然低于 0，系统判定破产！", "error", 5000);
                 handleSettlement(true);
                 return;
             } else {
@@ -420,7 +433,10 @@ export default function App() {
     };
 
     const handleEndTradeDay = () => {
-        if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
+        if (tickIntervalRef.current) {
+            clearInterval(tickIntervalRef.current);
+            tickIntervalRef.current = null;
+        }
         const todayProfit = ((store.assets - startOfDayAssets) / startOfDayAssets) * 100;
         setTodayProfitRate(todayProfit);
         setPhase('NIGHT');
@@ -430,8 +446,8 @@ export default function App() {
         const isSales = store.roleType === 'sales_manager';
         const actualCost = isSales ? scene.cost * 0.8 : scene.cost;
 
-        if (store.cash < actualCost) {
-            alert("流动现金余额不足，无法进入该消费场景！");
+        if (actualCost > 0 && store.cash < actualCost) {
+            toast.show("流动现金余额不足，无法进入该消费场景！", "warning");
             return;
         }
         setSelectedScene({
@@ -480,12 +496,18 @@ export default function App() {
             // 强平检查
             if (store.cash < 0) {
                 const currentPricesMap = {};
-                marketData.stocks.forEach((s) => {
-                    currentPricesMap[s] = marketData.prices[s]?.[tick] || marketData.bounds[s]?.open || 10.0;
-                });
+                if (marketData && marketData.stocks) {
+                    marketData.stocks.forEach((s) => {
+                        currentPricesMap[s] = marketData.prices?.[s]?.[tick] || marketData.bounds?.[s]?.open || 10.0;
+                    });
+                } else {
+                    Object.keys(store.holdings).forEach(s => {
+                        currentPricesMap[s] = 10.0;
+                    });
+                }
                 const res = store.runAutoLiquidation(currentPricesMap);
                 if (!res.success) {
-                    alert("💀 第 15 天平仓结束后现金依然低于 0，系统判定破产！");
+                    toast.show("第 15 天平仓结束后现金依然低于 0，系统判定破产！", "error", 5000);
                     handleSettlement(true);
                     return;
                 }
@@ -615,157 +637,185 @@ export default function App() {
 
     if (!store.user) {
         return (
-            <div style={{ padding: '40px', maxWidth: '400px', margin: 'auto', marginTop: '100px' }} className="glass-card">
-                <h2>股票人生模拟器 - 登录入口</h2>
-                <div style={{ marginBottom: '15px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: 'var(--text-gray)' }}>用户唯一ID</label>
-                    <input value={userId} onChange={(e) => setUserId(e.target.value)} style={{ display: 'block', width: '100%', padding: '8px', boxSizing: 'border-box', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }} />
+            <div className="layout-center">
+                <div className="game-card" style={{ padding: '40px', maxWidth: '420px', width: '100%', animation: 'cardDrop 0.4s ease forwards' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+                        <div style={{ fontSize: '40px', marginBottom: '8px' }}>🕹️</div>
+                        <h2 className="game-logo-title">股票人生模拟器</h2>
+                        <div className="game-logo-subtitle">STOCK LIFE ARCADE</div>
+                    </div>
+                    <div style={{ marginBottom: '18px' }}>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-data)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Player ID</label>
+                        <input value={userId} onChange={(e) => setUserId(e.target.value)} className="input-game" placeholder="输入你的专属ID" />
+                    </div>
+                    <div style={{ marginBottom: '24px' }}>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'var(--font-data)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>昵称 Nickname</label>
+                        <input value={username} onChange={(e) => setUsername(e.target.value)} className="input-game" placeholder="起一个响亮的江湖名号" />
+                    </div>
+                    <button onClick={handleLogin} className="btn-arcade" style={{ width: '100%', padding: '14px', fontSize: '16px' }}>🚪 进入游戏大厅</button>
+                    <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>v2.0 · 所有的选择都有价格</div>
                 </div>
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', color: 'var(--text-gray)' }}>角色昵称</label>
-                    <input value={username} onChange={(e) => setUsername(e.target.value)} style={{ display: 'block', width: '100%', padding: '8px', boxSizing: 'border-box', background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px' }} />
-                </div>
-                <button onClick={handleLogin} className="neon-btn-green" style={{ width: '100%', padding: '10px' }}>游客登录</button>
             </div>
         );
     }
 
     if (isMatching) {
         return (
-            <div style={{ padding: '40px', maxWidth: '450px', margin: '100px auto', textAlign: 'center' }} className="glass-card">
-                <h3>🔍 正在搜寻天梯实力相当的散户...</h3>
-                <p style={{ color: 'var(--text-gray)' }}>当前寻找 4 人天梯对局，请稍候</p>
-                <div className="loader" style={{ border: '4px solid #f3f3f3', borderTop: '4px solid var(--neon-green)', borderRadius: '50%', width: '30px', height: '30px', animation: 'spin 1s linear infinite', margin: '20px auto' }} />
-                <button className="neon-btn-green" style={{ borderColor: 'var(--neon-red)', color: 'var(--neon-red)' }} onClick={() => setIsMatching(false)}>取消匹配</button>
+            <div className="layout-center">
+                <div className="game-card" style={{ padding: '40px', maxWidth: '450px', width: '100%', textAlign: 'center', animation: 'cardDrop 0.4s ease forwards' }}>
+                    <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--amber)', margin: '0 0 8px 0' }}>🔍 搜寻对手中...</h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: '0 0 20px 0' }}>正在天梯匹配实力相当的散户，请稍候</p>
+                    <div className="match-radar" />
+                    <p style={{ fontFamily: 'var(--font-data)', fontSize: '12px', color: 'var(--text-muted)', margin: '8px 0 20px 0', animation: 'glowPulse 1.5s ease infinite' }}>SEARCHING 4 PLAYERS...</p>
+                    <button className="btn-danger" onClick={() => setIsMatching(false)} style={{ padding: '10px 24px' }}>✖ 取消匹配</button>
+                </div>
             </div>
         );
     }
 
     if (!store.isPlaying && phase !== 'SETTLEMENT') {
         return (
-            <div style={{ padding: '40px', maxWidth: '520px', margin: 'auto', marginTop: '60px' }} className="glass-card">
-                <h3>大厅首屏 - 玩家昵称: {store.user.username}</h3>
-                <h4 style={{ color: 'var(--neon-green)' }}>当前天梯分 (Elo): {store.user.elo_rating}</h4>
-                
-                {/* 职业身份卡片网格 */}
-                <h4 style={{ margin: '20px 0 10px 0' }}>🎭 选择你的职业身份</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '25px' }}>
-                    {ROLE_OPTIONS.map((opt) => {
-                        const isSelected = selectedRole === opt.id;
-                        return (
-                            <div
-                                key={opt.id}
-                                onClick={() => setSelectedRole(opt.id)}
-                                className="glass-card"
-                                style={{
-                                    padding: '12px',
-                                    cursor: 'pointer',
-                                    border: isSelected ? '2px solid var(--neon-green)' : '1px solid var(--border-color)',
-                                    background: isSelected ? 'rgba(0, 230, 118, 0.05)' : 'rgba(25, 25, 35, 0.4)',
-                                    transition: 'all 0.2s ease',
-                                    textAlign: 'left'
-                                }}
-                            >
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>
-                                    {opt.icon} {opt.name}
-                                </div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-gray)' }}>
-                                    起薪/天: <span style={{ color: '#fff' }}>¥{opt.salary}</span><br />
-                                    日生活费: <span style={{ color: '#fff' }}>¥{opt.cost}</span>
-                                </div>
-                                <div style={{ fontSize: '9px', color: 'var(--neon-green)', marginTop: '6px', borderTop: '1px dashed #444', paddingTop: '4px' }}>
-                                    ⚡ {opt.desc}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                <button onClick={startMatchmaking} className="neon-btn-green" style={{ width: '100%', padding: '15px' }}>🚀 寻找 PVP 竞技赛 (Elo 匹配)</button>
-                <button 
-                    onClick={() => {
-                        const seed = 'practice_' + Math.random().toString(36).substr(2, 9);
-                        let initialCash = 30000.0;
-                        if (selectedRole === "sales_manager") initialCash = 20000.0;
-                        if (selectedRole === "freelancer") initialCash = 50000.0;
-                        if (selectedRole === "government_worker") initialCash = 15000.0;
-
-                        setStartOfDayAssets(initialCash);
-                        store.startGame(seed, selectedRole, false);
-                        setPhase('TRADE');
-                        setOpponents({});
-                    }} 
-                    className="neon-btn-green" 
-                    style={{ width: '100%', padding: '15px', marginTop: '12px', borderColor: '#00b0ff', color: '#00b0ff' }}
-                >
-                    🎮 开启单人练习赛 (不计天梯分)
-                </button>
-                
-                {history.length > 0 && (
-                    <div style={{ marginTop: '20px', borderTop: '1px solid #333', paddingTop: '15px' }}>
-                        <h5>历史战绩：</h5>
-                        <div style={{ maxHeight: '120px', overflowY: 'auto' }}>
-                            {history.map((record) => (
-                                <div key={record.id} style={{ fontSize: '11px', color: 'var(--text-gray)', padding: '4px 0' }}>
-                                    #{record.id} | <span style={{ color: record.is_practice ? '#00b0ff' : 'var(--neon-green)', fontWeight: 'bold' }}>{record.is_practice ? '[练习]' : '[竞技]'}</span> | 职业: {ROLE_OPTIONS.find(r => r.id === record.role_type)?.name || record.role_type} | 资产: ¥{record.final_assets.toFixed(0)} | 收益: {record.profit_rate.toFixed(1)}% | {record.is_verified ? "验证通过" : "拒绝交易"}
-                                </div>
-                            ))}
+            <div className="layout-center" style={{ padding: '30px 20px' }}>
+                <div className="game-card" style={{ padding: '32px', maxWidth: '540px', width: '100%', animation: 'cardDrop 0.4s ease forwards' }}>
+                    {/* Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                        <div>
+                            <h3 style={{ fontFamily: 'var(--font-display)', margin: '0 0 4px 0', fontSize: '18px', color: 'var(--text-primary)' }}>🏠 散户大厅</h3>
+                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>欢迎回来, <span style={{ color: 'var(--amber)', fontWeight: '700' }}>{store.user.username}</span></div>
                         </div>
+                        <div className="day-pill">⭐ ELO {store.user.elo_rating}</div>
                     </div>
-                )}
+                
+                    {/* 职业身份卡片网格 */}
+                    <h4 className="section-title">🎭 选择你的职业身份</h4>
+                    <div className="grid-2col" style={{ marginBottom: '24px' }}>
+                        {ROLE_OPTIONS.map((opt) => {
+                            const isSelected = selectedRole === opt.id;
+                            return (
+                                <div
+                                    key={opt.id}
+                                    onClick={() => setSelectedRole(opt.id)}
+                                    className={`role-card ${isSelected ? 'role-card--selected' : ''}`}
+                                >
+                                    <span className="role-icon">{opt.icon}</span>
+                                    <div className="role-name">{opt.name}</div>
+                                    <div className="role-stats">
+                                        起薪/天: <span style={{ color: 'var(--text-primary)' }}>¥{opt.salary}</span><br />
+                                        日生活费: <span style={{ color: 'var(--text-primary)' }}>¥{opt.cost}</span>
+                                    </div>
+                                    <div className="role-perk">⚡ {opt.desc}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <button onClick={startMatchmaking} className="btn-arcade" style={{ width: '100%', padding: '15px', fontSize: '15px', marginBottom: '12px' }}>⚔️ 寻找 PVP 竞技赛 (Elo 匹配)</button>
+                    <button 
+                        onClick={() => {
+                            const seed = 'practice_' + Math.random().toString(36).substr(2, 9);
+                            let initialCash = 30000.0;
+                            if (selectedRole === "sales_manager") initialCash = 20000.0;
+                            if (selectedRole === "freelancer") initialCash = 50000.0;
+                            if (selectedRole === "government_worker") initialCash = 15000.0;
+
+                            setStartOfDayAssets(initialCash);
+                            store.startGame(seed, selectedRole, false);
+                            setPhase('TRADE');
+                            setOpponents({});
+                        }} 
+                        className="btn-sky" 
+                        style={{ width: '100%', padding: '15px', fontSize: '15px' }}
+                    >
+                        🎮 开启单人练习赛 (不计天梯分)
+                    </button>
+                    
+                    {history.length > 0 && (
+                        <div style={{ marginTop: '24px', borderTop: '2px dashed var(--border-card)', paddingTop: '16px' }}>
+                            <h5 className="section-title" style={{ fontSize: '14px' }}>🏆 历史战绩</h5>
+                            <div style={{ maxHeight: '140px', overflowY: 'auto' }}>
+                                {history.map((record) => (
+                                    <div key={record.id} className="history-row">
+                                        <span style={{ color: 'var(--text-muted)' }}>#{record.id}</span>
+                                        <span className={record.is_practice ? 'badge badge--solo' : 'badge badge--pvp'}>{record.is_practice ? '练习' : '竞技'}</span>
+                                        <span>{ROLE_OPTIONS.find(r => r.id === record.role_type)?.icon} {ROLE_OPTIONS.find(r => r.id === record.role_type)?.name || record.role_type}</span>
+                                        <span style={{ fontFamily: 'var(--font-data)', color: 'var(--text-primary)' }}>¥{record.final_assets.toFixed(0)}</span>
+                                        <span className={record.profit_rate >= 0 ? 'text-profit' : 'text-loss'}>{record.profit_rate >= 0 ? '+' : ''}{record.profit_rate.toFixed(1)}%</span>
+                                        <span style={{ color: record.is_verified ? 'var(--jade)' : 'var(--crimson)' }}>{record.is_verified ? '✓' : '✗'}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         );
     }
 
     // 局内行情相关的临时参数
-    const currentPrice = marketData?.prices[selectedStock]?.[tick] || marketData?.bounds[selectedStock]?.open || 10.0;
+    const currentPrice = marketData?.prices?.[selectedStock]?.[tick] || marketData?.bounds?.[selectedStock]?.open || 10.0;
     const currentHolding = store.holdings[selectedStock] || 0;
 
     return (
-        <div style={{ padding: '20px', maxWidth: '900px', margin: 'auto' }}>
+        <div className="layout-page">
+            <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
             {phase === 'TRADE' && marketData && (
                 <>
                     {/* 盘前职业资讯条 */}
                     {pretradeMessage && (
-                        <div className="glass-card" style={{ padding: '10px 15px', marginBottom: '15px', borderLeft: '4px solid var(--neon-green)', background: 'rgba(0, 230, 118, 0.03)', fontSize: '12px', color: '#eee' }}>
+                        <div className="pretrade-banner">
                             📢 {pretradeMessage}
                         </div>
                     )}
 
                     {/* 状态看板栏 */}
-                    <div className="glass-card" style={{ padding: '15px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <h3 style={{ margin: '0 0 5px 0' }}>{store.isPvpMode ? '竞技赛对局' : '单人练习赛'} - Day {store.day} / 15</h3>
-                            <div style={{ fontSize: '12px', color: 'var(--text-gray)' }}>
-                                职业特权: {ROLE_OPTIONS.find(r => r.id === store.roleType)?.name} | 
-                                {store.bookstoreDaysLeft > 0 ? ` 📚 书店Buff剩余 ${store.bookstoreDaysLeft} 天(手续费减半)` : ''}
+                    <div className="game-card--static" style={{ padding: '16px', marginBottom: '20px' }}>
+                        <div className="hud-bar">
+                            <div className="hud-left">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', margin: '0 0 6px 0' }}>
+                                    <h3 style={{ fontFamily: 'var(--font-display)', margin: 0, fontSize: '16px' }}>{store.isPvpMode ? '⚔️ 竞技赛' : '🎮 练习赛'}</h3>
+                                    <span className="day-pill">Day {store.day} / 15</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    {ROLE_OPTIONS.find(r => r.id === store.roleType)?.icon} {ROLE_OPTIONS.find(r => r.id === store.roleType)?.name}
+                                    {store.bookstoreDaysLeft > 0 && <span className="badge badge--buff" style={{ marginLeft: '8px' }}>📚 手续费减半 {store.bookstoreDaysLeft}天</span>}
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    🛡️ 强平策略:
+                                    <select 
+                                        value={store.liquidationStrategy} 
+                                        onChange={(e) => store.setLiquidationStrategy(e.target.value)}
+                                        className="input-game"
+                                        style={{ width: 'auto', padding: '3px 8px', fontSize: '11px' }}
+                                    >
+                                        <option value="profit_first">优先卖出浮盈股 (处置效应)</option>
+                                        <option value="loss_first">优先卖出浮亏股 (理性止损)</option>
+                                        <option value="value_first">优先卖出大市值股 (流动性至上)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div style={{ fontSize: '11px', color: '#ccc', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                🛡️ 自动强平策略:
-                                <select 
-                                    value={store.liquidationStrategy} 
-                                    onChange={(e) => store.setLiquidationStrategy(e.target.value)}
-                                    style={{ background: '#222', border: '1px solid #444', color: '#fff', borderRadius: '4px', padding: '2px 5px', fontSize: '11px', cursor: 'pointer' }}
-                                >
-                                    <option value="profit_first">优先卖出浮盈股 (处置效应)</option>
-                                    <option value="loss_first">优先卖出浮亏股 (理性止损)</option>
-                                    <option value="value_first">优先卖出大市值股 (流动性至上)</option>
-                                </select>
+                            <div className="hud-right">
+                                <div style={{ fontFamily: 'var(--font-data)', fontSize: '14px', fontWeight: '700' }}>
+                                    💰 <span className={store.cash >= 0 ? 'cash-amount cash-amount--positive' : 'cash-amount cash-amount--negative'}>¥{store.cash.toFixed(2)}</span>
+                                    <span style={{ color: 'var(--text-muted)', margin: '0 6px' }}>|</span>
+                                    📊 <span style={{ color: 'var(--amber)' }}>¥{store.assets.toFixed(2)}</span>
+                                </div>
+                                <div style={{ fontSize: '11px', color: tick >= 239 ? 'var(--amber)' : 'var(--text-muted)', marginTop: '4px', fontFamily: 'var(--font-data)' }}>
+                                    {tick >= 239 ? '📢 已收盘 — 点击进入盘后' : `TICK ${tick}/240${store.tickRateMultiplier > 1.0 ? ' ⚡加速中' : ''}`}
+                                </div>
                             </div>
+                            <button
+                                className="btn-arcade"
+                                onClick={handleEndTradeDay}
+                                style={{
+                                    whiteSpace: 'nowrap',
+                                    ...(tick >= 239 ? { animation: 'btnPulse 1.5s ease-in-out infinite', boxShadow: '0 3px 0 var(--amber-dim), 0 0 16px var(--amber-glow)' } : {})
+                                }}
+                            >🌙 进入盘后</button>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
-                                流动现金: <span style={{ color: store.cash >= 0 ? '#fff' : 'var(--neon-red)' }}>¥{store.cash.toFixed(2)}</span> | 总资产: ¥{store.assets.toFixed(2)}
-                            </div>
-                            <div style={{ fontSize: '11px', color: 'var(--text-gray)', marginTop: '4px' }}>
-                                今日分时步进: {tick} / 240 {store.tickRateMultiplier > 1.0 ? ' (⚡加速操盘中)' : ''}
-                            </div>
-                        </div>
-                        <button className="neon-btn-green" onClick={handleEndTradeDay}>操盘完毕，进入盘后</button>
                     </div>
 
                     {/* 左右核心双栏布局 */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '40% 60%', gap: '20px' }}>
+                    <div className="grid-trade">
                         {/* 左侧：自选股大盘列表 & 情报笔记本 */}
                         <div>
                             <WatchList
@@ -779,9 +829,9 @@ export default function App() {
                             />
 
                             {/* 情报笔记本 */}
-                            <div className="glass-card" style={{ padding: '15px', marginTop: '15px' }}>
-                                <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #333', paddingBottom: '5px' }}>📓 情报笔记本</h4>
-                                <div style={{ maxHeight: '180px', overflowY: 'auto', textAlign: 'left' }}>
+                            <div className="game-card--static" style={{ padding: '15px', marginTop: '15px' }}>
+                                <h4 className="section-title" style={{ fontSize: '14px' }}>📓 情报笔记本</h4>
+                                <div className="info-notebook">
                                     {/* 情报串联 */}
                                     {(() => {
                                         const grouped = {};
@@ -795,7 +845,7 @@ export default function App() {
                                             const sources = new Set(items.map(i => i.source));
                                             if (sources.size >= 2) {
                                                 syntheses.push(
-                                                    <div key={stock} style={{ border: '1px solid var(--neon-green)', background: 'rgba(0, 230, 118, 0.05)', padding: '8px', borderRadius: '4px', marginBottom: '8px', fontSize: '11px' }}>
+                                                    <div key={stock} className="info-synthesis">
                                                         💡 <strong>【情报串联 - {stock}】</strong>: 经过 {Array.from(sources).join(' & ')} 交叉研判，确信该股有庄家或机构资金建仓迹象！
                                                     </div>
                                                 );
@@ -806,11 +856,11 @@ export default function App() {
                                     })()}
                                     
                                     {store.gatheredInfo.length === 0 ? (
-                                        <div style={{ color: 'var(--text-gray)', fontSize: '12px', padding: '10px 0' }}>暂无盘后情报，多去大排档/酒吧社交收集线索吧。</div>
+                                        <div style={{ color: 'var(--text-muted)', fontSize: '12px', padding: '10px 0' }}>暂无盘后情报，多去大排档/酒吧社交收集线索吧。</div>
                                     ) : (
                                         store.gatheredInfo.map((info, idx) => (
-                                            <div key={idx} style={{ fontSize: '11px', color: '#eee', padding: '4px 0', borderBottom: '1px dashed #222' }}>
-                                                🔍 [{info.source}] <span style={{ color: 'var(--neon-green)', fontWeight: 'bold' }}>{info.stock}</span>: {info.text}
+                                            <div key={idx} className="info-entry">
+                                                🔍 [{info.source}] <span style={{ color: 'var(--amber)', fontWeight: 'bold' }}>{info.stock}</span>: {info.text}
                                             </div>
                                         ))
                                     )}
@@ -820,13 +870,16 @@ export default function App() {
 
                         {/* 右侧：当前选中股详情看盘及交易 */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <div className="glass-card" style={{ padding: '15px' }}>
-                                <h4 style={{ margin: '0 0 10px 0' }}>📈 K线走势：{selectedStock}</h4>
-                                <KLineChart prices={marketData.prices[selectedStock]?.slice(0, tick + 1) || [10.0]} />
+                            <div>
+                                <h4 className="section-title" style={{ fontSize: '14px', marginBottom: '8px' }}>📈 走势：<span style={{ fontFamily: 'var(--font-data)', color: 'var(--amber)' }}>{selectedStock}</span></h4>
+                                <KLineChart
+                                    prices={marketData.prices[selectedStock]?.slice(0, tick + 1) || [10.0]}
+                                    history={store.dailyPricesHistory[selectedStock] || []}
+                                />
                             </div>
 
                             {store.meetingForceEnd && tick >= 180 && (
-                                <div style={{ background: 'rgba(239, 83, 80, 0.1)', borderLeft: '4px solid var(--neon-red)', color: 'var(--neon-red)', padding: '10px 15px', fontSize: '12px', borderRadius: '4px', textAlign: 'left' }}>
+                                <div className="meeting-lockout">
                                     💼 正在召开部门紧急会议 (14:00 后)，交易功能已被强制停用。请认真参会！
                                 </div>
                             )}
@@ -837,16 +890,16 @@ export default function App() {
                                 holdingQty={currentHolding}
                                 onTrade={(type, qty) => {
                                     if (store.meetingForceEnd && tick >= 180) {
-                                        alert("💼 此时正是下午部门紧急会议时间，请认真听取领导发言，严禁偷偷进行股票买卖！");
+                                        toast.show("此时正是下午部门紧急会议时间，请认真听取领导发言，严禁偷偷进行股票买卖！", "warning");
                                         return;
                                     }
                                     if (type === 'BUY') {
                                         const success = store.buyStock(selectedStock, currentPrice, qty);
-                                        if (!success) alert("可用负现金授信已达上限！");
+                                        if (!success) toast.show("可用负现金授信已达上限，无法买入！", "error");
                                     }
                                     if (type === 'SELL') {
                                         const success = store.sellStock(selectedStock, currentPrice, qty);
-                                        if (!success) alert("持仓股份不足！");
+                                        if (!success) toast.show("持仓股份不足，无法卖出！", "error");
                                     }
                                 }}
                             />
@@ -856,33 +909,40 @@ export default function App() {
             )}
 
             {phase === 'NIGHT' && (
-                <div className="glass-card" style={{ padding: '20px', textAlign: 'center', maxWidth: '500px', margin: '40px auto' }}>
-                    <h3 style={{ margin: '0 0 10px 0' }}>🌃 盘后社交阶段 (Day {store.day})</h3>
-                    <p style={{ fontSize: '14px', color: 'var(--text-gray)' }}>
-                        今日盘中收益率: <span style={{ color: todayProfitRate >= 0 ? 'var(--neon-green)' : 'var(--neon-red)', fontWeight: 'bold' }}>
-                            {todayProfitRate.toFixed(2)}%
+                <div className="game-card" style={{ padding: '28px', textAlign: 'center', maxWidth: '520px', margin: '40px auto', animation: 'cardDrop 0.35s ease forwards' }}>
+                    <h3 style={{ fontFamily: 'var(--font-display)', margin: '0 0 6px 0', fontSize: '20px', color: 'var(--amber)' }}>🌃 盘后社交阶段</h3>
+                    <span className="day-pill" style={{ marginBottom: '16px', display: 'inline-flex' }}>Day {store.day}</span>
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '12px 0 4px 0' }}>
+                        今日收益率: <span className={todayProfitRate >= 0 ? 'text-profit' : 'text-loss'} style={{ fontSize: '18px' }}>
+                            {todayProfitRate >= 0 ? '+' : ''}{todayProfitRate.toFixed(2)}%
                         </span>
                     </p>
-                    <p style={{ fontSize: '13px', marginBottom: '20px' }}>根据今日损益与职业资产，您已累计解锁了以下场景：</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        {getUnlockedScenes(todayProfitRate).map((scene) => {
-                            const isSales = store.roleType === 'sales_manager';
-                            const displayCost = isSales ? scene.cost * 0.8 : scene.cost;
-                            return (
-                                <button
-                                    key={scene.name}
-                                    className="neon-btn-green"
-                                    onClick={() => selectScene(scene)}
-                                    style={{ padding: '12px', fontSize: '13px' }}
-                                >
-                                    {scene.name} <br/>
-                                    <span style={{ fontSize: '10px', opacity: 0.8 }}>
-                                        花费: ¥{displayCost} 
-                                        {isSales && scene.cost > 0 ? " (已享8折)" : ""}
-                                    </span>
-                                </button>
-                            );
-                        })}
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>根据今日损益解锁以下场景，选择你的夜生活：</p>
+                    <div className="grid-2col">
+                        {getUnlockedScenes(todayProfitRate)
+                            .filter((scene) => {
+                                const isSales = store.roleType === 'sales_manager';
+                                const displayCost = isSales ? scene.cost * 0.8 : scene.cost;
+                                // 0花费场景始终允许，有花费场景要求流动现金足够
+                                return displayCost === 0 || store.cash >= displayCost;
+                            })
+                            .map((scene) => {
+                                const isSales = store.roleType === 'sales_manager';
+                                const displayCost = isSales ? scene.cost * 0.8 : scene.cost;
+                                return (
+                                    <div
+                                        key={scene.name}
+                                        className="scene-card"
+                                        onClick={() => selectScene(scene)}
+                                    >
+                                        <div className="scene-name">{scene.name}</div>
+                                        <div className="scene-cost">
+                                            💰 ¥{displayCost}
+                                            {isSales && scene.cost > 0 ? " (8折)" : ""}
+                                        </div>
+                                    </div>
+                                );
+                            })}
                     </div>
                 </div>
             )}
@@ -897,40 +957,41 @@ export default function App() {
             )}
 
             {phase === 'SETTLEMENT' && settlementReport && (
-                <div className="glass-card" style={{ padding: '30px', maxWidth: '850px', margin: '40px auto', textAlign: 'center' }}>
-                    <h2 style={{ color: 'var(--neon-green)', marginBottom: '5px' }}>🏆 {store.isPvpMode ? '竞技赛终局对局结算' : '练习赛终局对局结算'}</h2>
-                    <p style={{ color: 'var(--text-gray)', fontSize: '13px', margin: '0 0 25px 0' }}>
-                        重放验证: {settlementReport.isVerified ? 
-                            <span style={{ color: 'var(--neon-green)', fontWeight: 'bold' }}>通过 (Legitimate)</span> : 
-                            <span style={{ color: 'var(--neon-red)', fontWeight: 'bold' }}>拒绝 (Cheat Detected)</span>
+                <div className="game-card" style={{ padding: '30px', maxWidth: '850px', margin: '40px auto', textAlign: 'center', animation: 'cardDrop 0.4s ease forwards' }}>
+                    <h2 className="settlement-title" style={{ color: 'var(--amber)' }}>{store.isPvpMode ? '⚔️ STAGE CLEAR' : '🎮 GAME OVER'}</h2>
+                    <p style={{ fontFamily: 'var(--font-display)', fontSize: '15px', color: 'var(--text-secondary)', margin: '0 0 8px 0' }}>{store.isPvpMode ? '竞技赛终局结算' : '练习赛终局结算'}</p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '0 0 25px 0', fontFamily: 'var(--font-data)' }}>
+                        VERIFY: {settlementReport.isVerified ? 
+                            <span className="text-profit">PASSED ✓</span> : 
+                            <span className="text-loss">REJECTED ✗</span>
                         }
                     </p>
 
                     {settlementReport.isBankrupt && (
-                        <div style={{ color: 'var(--neon-red)', fontWeight: 'bold', fontSize: '18px', margin: '10px 0 20px 0' }}>
-                            💀 您的公司/个人流动现金彻底归零，系统判定破产！
+                        <div style={{ color: 'var(--crimson)', fontFamily: 'var(--font-display)', fontSize: '18px', margin: '10px 0 20px 0', padding: '12px', background: 'rgba(232, 55, 90, 0.06)', border: '2px dashed var(--crimson)', borderRadius: 'var(--radius-md)' }}>
+                            💀 破产清算 — 流动现金彻底归零！
                         </div>
                     )}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '30px', textAlign: 'left' }}>
+                    <div className="settlement-grid">
                         {/* 左侧：雷达图与排名 */}
                         <div>
-                            <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #333', paddingBottom: '5px' }}>📊 四维交易表现</h4>
+                            <h4 className="section-title">📊 四维交易表现</h4>
                             <RadarChart scores={settlementReport.metrics} />
 
                             {/* ELO Rating Badge */}
-                            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px 15px', borderRadius: '8px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ background: 'var(--bg-elevated)', padding: '14px 16px', borderRadius: 'var(--radius-md)', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-card)' }}>
                                 {store.isPvpMode ? (
                                     <>
                                         <div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-gray)' }}>天梯积分变动 (Elo)</div>
-                                            <div style={{ fontSize: '13px', marginTop: '2px' }}>
-                                                {settlementReport.oldElo} ➔ <span style={{ fontWeight: 'bold' }}>{settlementReport.newElo}</span>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)', textTransform: 'uppercase' }}>Elo Rating</div>
+                                            <div style={{ fontSize: '13px', marginTop: '3px', fontFamily: 'var(--font-data)' }}>
+                                                {settlementReport.oldElo} ➔ <span style={{ fontWeight: 'bold', color: 'var(--amber)' }}>{settlementReport.newElo}</span>
                                             </div>
                                         </div>
                                         <div 
                                             className="elo-change-badge" 
-                                            style={{ color: settlementReport.eloDiff >= 0 ? 'var(--neon-green)' : 'var(--neon-red)', fontSize: '20px', fontWeight: 'bold' }}
+                                            style={{ color: settlementReport.eloDiff >= 0 ? 'var(--jade)' : 'var(--crimson)' }}
                                         >
                                             {settlementReport.eloDiff >= 0 ? `+${settlementReport.eloDiff}` : settlementReport.eloDiff}
                                         </div>
@@ -938,49 +999,33 @@ export default function App() {
                                 ) : (
                                     <>
                                         <div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-gray)' }}>天梯积分变动 (Elo)</div>
-                                            <div style={{ fontSize: '13px', marginTop: '2px', color: '#00b0ff' }}>
-                                                🎮 练习赛模式 (不计积分)
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)', textTransform: 'uppercase' }}>Elo Rating</div>
+                                            <div style={{ fontSize: '13px', marginTop: '3px', color: 'var(--sky)' }}>
+                                                🎮 练习赛 (不计积分)
                                             </div>
                                         </div>
-                                        <div 
-                                            style={{ color: '#00b0ff', fontSize: '14px', fontWeight: 'bold' }}
-                                        >
-                                            暂无变动
-                                        </div>
+                                        <div style={{ color: 'var(--sky)', fontSize: '14px', fontWeight: 'bold', fontFamily: 'var(--font-data)' }}>—</div>
                                     </>
                                 )}
                             </div>
 
                             {/* Leaderboard */}
-                            <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #333', paddingBottom: '5px' }}>🏁 本场对局排行</h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <h4 className="section-title">🏁 本场排行</h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 {settlementReport.leaderboard.map((player, idx) => {
                                     const isSelf = player.userId === store.user.id;
                                     return (
-                                        <div 
-                                            key={player.userId} 
-                                            style={{ 
-                                                display: 'flex', 
-                                                justifyContent: 'space-between', 
-                                                alignItems: 'center',
-                                                background: isSelf ? 'rgba(0, 230, 118, 0.08)' : 'transparent',
-                                                padding: '8px 12px',
-                                                borderRadius: '6px',
-                                                border: isSelf ? '1px solid var(--neon-green)' : '1px solid transparent',
-                                                fontSize: '12px'
-                                            }}
-                                        >
+                                        <div key={player.userId} className={`leaderboard-row ${isSelf ? 'leaderboard-row--self' : ''}`}>
                                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                <span style={{ fontWeight: 'bold', color: idx === 0 ? '#ffd700' : 'var(--text-gray)' }}>
+                                                <span className="rank-medal">
                                                     {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}`}
                                                 </span>
                                                 <span style={{ fontWeight: isSelf ? 'bold' : 'normal' }}>{player.username}</span>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 'bold' }}>¥{player.assets.toFixed(0)}</div>
-                                                <div style={{ fontSize: '9px', color: 'var(--text-gray)' }}>
-                                                    {player.isFinished ? '已完赛' : '未完赛'}
+                                                <div style={{ fontWeight: 'bold', fontFamily: 'var(--font-data)', color: 'var(--amber)' }}>¥{player.assets.toFixed(0)}</div>
+                                                <div style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+                                                    {player.isFinished ? '✓ 完赛' : '进行中...'}
                                                 </div>
                                             </div>
                                         </div>
@@ -992,31 +1037,20 @@ export default function App() {
                         {/* 右侧：投资偏见诊断与股票映射 */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div>
-                                <h4 style={{ margin: '0 0 10px 0', borderBottom: '1px solid #333', paddingBottom: '5px', color: 'var(--neon-red)' }}>
-                                    🧠 投资偏见诊断 (Cognitive Bias)
+                                <h4 className="section-title" style={{ color: 'var(--crimson)' }}>
+                                    🧠 认知偏差诊断
                                 </h4>
                                 {settlementReport.biases.length === 0 ? (
-                                    <div style={{ background: 'rgba(0, 230, 118, 0.04)', border: '1px solid rgba(0, 230, 118, 0.2)', padding: '12px', borderRadius: '8px', fontSize: '12px', color: '#eee' }}>
-                                        🎉 <strong>完美克制偏见！</strong> 本局您没有表现出明显的交易行为偏差。交易心态平稳，理性克制，值得继续保持！
+                                    <div className="bias-card bias-card--clean">
+                                        🎉 <strong>完美克制偏见！</strong> 本局无明显交易行为偏差，心态平稳，理性克制！
                                     </div>
                                 ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '200px', overflowY: 'auto' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '220px', overflowY: 'auto' }}>
                                         {settlementReport.biases.map((bias) => (
-                                            <div 
-                                                key={bias.id} 
-                                                style={{ 
-                                                    background: 'rgba(255, 23, 68, 0.03)', 
-                                                    border: '1px solid rgba(255, 23, 68, 0.2)', 
-                                                    padding: '12px', 
-                                                    borderRadius: '8px',
-                                                    fontSize: '12px'
-                                                }}
-                                            >
-                                                <strong style={{ color: 'var(--neon-red)', fontSize: '13px' }}>{bias.name}</strong>
-                                                <p style={{ margin: '6px 0 8px 0', color: '#ddd', lineHeight: '1.4' }}>{bias.desc}</p>
-                                                <div style={{ fontSize: '11px', color: 'var(--neon-yellow)', borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: '6px' }}>
-                                                    {bias.tip}
-                                                </div>
+                                            <div key={bias.id} className="bias-card">
+                                                <div className="bias-name">{bias.name}</div>
+                                                <p style={{ margin: '6px 0 8px 0', color: 'var(--text-secondary)', lineHeight: '1.5' }}>{bias.desc}</p>
+                                                <div className="bias-tip">{bias.tip}</div>
                                             </div>
                                         ))}
                                     </div>
@@ -1031,46 +1065,46 @@ export default function App() {
                     </div>
 
                     <button 
-                        className="neon-btn-green" 
+                        className="btn-arcade" 
                         onClick={() => {
                             useGameStore.setState({ isPlaying: false });
                             setPhase('TRADE');
                             setSettlementReport(null);
                         }}
-                        style={{ width: '100%', padding: '12px', marginTop: '30px' }}
+                        style={{ width: '100%', padding: '14px', marginTop: '30px', fontSize: '16px' }}
                     >
-                        返回主大厅
+                        🏠 返回散户大厅
                     </button>
                 </div>
             )}
 
             {/* 突发生活随机事件弹窗 */}
             {phase === 'LIFE_EVENT' && activeLifeEvent && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                    <div className="glass-card" style={{ padding: '30px', maxWidth: '420px', width: '90%', textAlign: 'center', border: '1px solid var(--neon-green)' }}>
-                        <span style={{ fontSize: '32px' }}>🔔</span>
-                        <h3 style={{ margin: '10px 0 15px 0', color: 'var(--neon-green)' }}>{activeLifeEvent.title}</h3>
-                        <p style={{ fontSize: '13px', color: '#eee', lineHeight: '1.6', marginBottom: '25px', textAlign: 'left' }}>
+                <div className="modal-overlay">
+                    <div className="modal-panel modal-panel--amber">
+                        <span style={{ fontSize: '36px', display: 'block', marginBottom: '4px' }}>❗</span>
+                        <h3 style={{ fontFamily: 'var(--font-display)', margin: '8px 0 15px 0', color: 'var(--amber)', fontSize: '18px' }}>{activeLifeEvent.title}</h3>
+                        <div className="speech-bubble" style={{ marginBottom: '20px' }}>
                             {activeLifeEvent.desc}
-                        </p>
+                        </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {activeLifeEvent.options.map((opt, idx) => (
                                 <button
                                     key={idx}
-                                    className="neon-btn-green"
+                                    className="btn-arcade"
                                     onClick={() => {
                                         if (opt.cost && (store.cash - opt.cost < -store.assets)) {
-                                            alert("💀 您的流动资金与授信资产已全部耗尽，信用额度爆仓，系统判定直接破产！");
+                                            toast.show("您的流动资金与授信资产已全部耗尽，信用额度爆仓，系统判定直接破产！", "error", 5000);
                                             setActiveLifeEvent(null);
                                             handleSettlement(true);
                                             return;
                                         }
                                         const feedback = opt.effect(store);
-                                        alert(feedback || "事件已处理完毕");
+                                        toast.show(feedback || "事件已处理完毕", "success");
                                         setActiveLifeEvent(null);
                                         finalizeDayTransition();
                                     }}
-                                    style={{ padding: '10px', fontSize: '12px' }}
+                                    style={{ padding: '10px', fontSize: '13px' }}
                                 >
                                     {opt.text}
                                 </button>
@@ -1082,39 +1116,39 @@ export default function App() {
 
             {/* 盘后赤字强平报告 */}
             {liquidationReport && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                    <div className="glass-card" style={{ padding: '30px', maxWidth: '450px', width: '90%', textAlign: 'center', border: '1px solid var(--neon-red)' }}>
-                        <h3 style={{ color: 'var(--neon-red)', margin: '0 0 10px 0' }}>⚠️ 盘后负债自动清仓报告</h3>
-                        <p style={{ fontSize: '13px', color: 'var(--text-gray)' }}>
-                            由于您的流动现金已透支 (当前现金: ¥{store.cash.toFixed(2)})，系统已强制执行平仓弥补头寸。
+                <div className="modal-overlay">
+                    <div className="modal-panel modal-panel--danger">
+                        <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--crimson)', margin: '0 0 10px 0', fontSize: '18px' }}>⚠️ 自动清仓报告</h3>
+                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                            流动现金透支 (<span className="text-loss">¥{store.cash.toFixed(2)}</span>)，系统已强制平仓。
                         </p>
                         <div style={{ margin: '15px 0', maxHeight: '180px', overflowY: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                            <table className="game-table">
                                 <thead>
-                                    <tr style={{ borderBottom: '1px solid #333', color: 'var(--text-gray)' }}>
-                                        <th style={{ padding: '6px', textAlign: 'left' }}>股票</th>
-                                        <th style={{ padding: '6px' }}>平仓价格</th>
-                                        <th style={{ padding: '6px' }}>平仓股数</th>
-                                        <th style={{ padding: '6px', textAlign: 'right' }}>回笼资金</th>
+                                    <tr>
+                                        <th style={{ textAlign: 'left' }}>股票</th>
+                                        <th>平仓价格</th>
+                                        <th>股数</th>
+                                        <th style={{ textAlign: 'right' }}>回笼资金</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {liquidationReport.map((log, idx) => (
-                                        <tr key={idx} style={{ borderBottom: '1px solid #222' }}>
-                                            <td style={{ padding: '6px', textAlign: 'left' }}>{log.stock}</td>
-                                            <td style={{ padding: '6px' }}>¥{log.price.toFixed(2)}</td>
-                                            <td style={{ padding: '6px' }}>{log.qty} 股</td>
-                                            <td style={{ padding: '6px', textAlign: 'right', color: 'var(--neon-green)' }}>+¥{log.revenue.toFixed(2)}</td>
+                                        <tr key={idx}>
+                                            <td style={{ textAlign: 'left', fontFamily: 'var(--font-data)' }}>{log.stock}</td>
+                                            <td style={{ fontFamily: 'var(--font-data)' }}>¥{log.price.toFixed(2)}</td>
+                                            <td style={{ fontFamily: 'var(--font-data)' }}>{log.qty}</td>
+                                            <td style={{ textAlign: 'right' }} className="text-profit">+¥{log.revenue.toFixed(2)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', margin: '15px 0' }}>
-                            平仓后流动现金：<span style={{ color: 'var(--neon-green)' }}>¥{store.cash.toFixed(2)}</span>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', margin: '15px 0', fontFamily: 'var(--font-data)' }}>
+                            平仓后现金：<span className="text-profit">¥{store.cash.toFixed(2)}</span>
                         </div>
-                        <button className="neon-btn-green" onClick={() => setLiquidationReport(null)} style={{ width: '100%', padding: '10px' }}>
-                            确认并返回大厅
+                        <button className="btn-arcade" onClick={() => setLiquidationReport(null)} style={{ width: '100%', padding: '10px' }}>
+                            ✓ 确认并继续
                         </button>
                     </div>
                 </div>
@@ -1122,28 +1156,29 @@ export default function App() {
 
             {/* 盘前推演晨报 */}
             {showMorningBrief && morningBrief && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-                    <div className="glass-card" style={{ padding: '30px', maxWidth: '420px', width: '90%', textAlign: 'center', border: '1px solid var(--neon-green)' }}>
-                        <h3 style={{ color: 'var(--neon-green)', margin: '0 0 10px 0' }}>📢 盘前推演晨报 (Day {morningBrief.day})</h3>
-                        <div style={{ margin: '20px 0', textAlign: 'left', fontSize: '13px', lineHeight: '1.6' }}>
-                            <div style={{ marginBottom: '10px' }}>
+                <div className="modal-overlay">
+                    <div className="modal-panel modal-panel--amber">
+                        <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--amber)', margin: '0 0 6px 0', fontSize: '18px' }}>📢 盘前晨报</h3>
+                        <span className="day-pill" style={{ display: 'inline-flex', marginBottom: '16px' }}>Day {morningBrief.day}</span>
+                        <div style={{ margin: '10px 0', textAlign: 'left', fontSize: '13px', lineHeight: '1.7' }}>
+                            <div style={{ marginBottom: '12px' }}>
                                 🔥 <strong>今日活跃板块：</strong> 
-                                <span style={{ color: '#fff', background: 'rgba(0, 230, 118, 0.2)', padding: '2px 6px', borderRadius: '4px', marginLeft: '6px' }}>
-                                    {morningBrief.activeSector}板块
+                                <span className="badge badge--buff" style={{ marginLeft: '6px' }}>
+                                    {morningBrief.activeSector}
                                 </span>
                             </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                📈 <strong>主力强力推荐：</strong> 
-                                <span style={{ color: 'var(--neon-green)', marginLeft: '6px', fontWeight: 'bold' }}>{morningBrief.recommendations.join(', ')}</span>
+                            <div style={{ marginBottom: '14px' }}>
+                                📈 <strong>主力推荐：</strong> 
+                                <span style={{ color: 'var(--amber)', marginLeft: '6px', fontWeight: 'bold', fontFamily: 'var(--font-data)' }}>{morningBrief.recommendations.join(', ')}</span>
                             </div>
                             {morningBrief.extraHint && (
-                                <div style={{ borderTop: '1px dashed #444', paddingTop: '10px', color: 'var(--neon-yellow)', fontSize: '12px' }}>
+                                <div style={{ borderTop: '1px dashed var(--border-card)', paddingTop: '10px', color: 'var(--amber)', fontSize: '12px' }}>
                                     {morningBrief.extraHint}
                                 </div>
                             )}
                         </div>
-                        <button className="neon-btn-green" onClick={() => setShowMorningBrief(false)} style={{ width: '100%', padding: '10px' }}>
-                            确认，开始操盘
+                        <button className="btn-arcade" onClick={() => setShowMorningBrief(false)} style={{ width: '100%', padding: '12px', fontSize: '14px' }}>
+                            🕹️ 开始操盘
                         </button>
                     </div>
                 </div>

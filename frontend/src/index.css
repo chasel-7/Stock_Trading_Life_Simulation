@@ -1,49 +1,470 @@
+/* ============================================================
+   🎮 STOCK LIFE ARCADE — Design System
+   Theme: 「深夜街机厅 × 港式赌片」Neon Alley Arcade
+   ============================================================ */
+
+/* ─── COLOR TOKENS ─── */
 :root {
-    --bg-dark: #0f0f12;
-    --card-bg: rgba(25, 25, 35, 0.65);
-    --border-color: rgba(255, 255, 255, 0.08);
-    --neon-green: #00e676;
-    --neon-red: #ff1744;
-    --text-white: #ffffff;
-    --text-gray: #90a4ae;
+    /* Primary Palette — warm dark with amber undertones */
+    --bg-deep:        #0a0e14;
+    --bg-surface:     #111720;
+    --bg-card:        #161d2a;
+    --bg-card-hover:  #1e2738;
+    --bg-elevated:    #1f2a3c;
+
+    /* Accent Colors — dominant golden amber, sharp contrasts */
+    --amber:          #E8A317;
+    --amber-dim:      #a67312;
+    --amber-glow:     rgba(232, 163, 23, 0.25);
+    --jade:           #2DD4A8;
+    --jade-dim:       #1a9974;
+    --jade-glow:      rgba(45, 212, 168, 0.18);
+    --crimson:        #F04363;
+    --crimson-dim:    #b02e46;
+    --crimson-glow:   rgba(240, 67, 99, 0.18);
+    --sky:            #5BC0F8;
+    --sky-dim:        #2d8bc4;
+    --sky-glow:       rgba(91, 192, 248, 0.15);
+
+    /* Text — warm whites, not clinical blue-white */
+    --text-primary:   #E5DDD0;
+    --text-secondary: #9A8E7F;
+    --text-muted:     #5E5549;
+
+    /* Borders & Dividers */
+    --border-subtle:  rgba(229, 221, 208, 0.05);
+    --border-card:    rgba(229, 221, 208, 0.09);
+    --border-accent:  rgba(232, 163, 23, 0.3);
+
+    /* Shadows */
+    --shadow-card:    3px 3px 0px rgba(0, 0, 0, 0.55);
+    --shadow-card-lg: 5px 5px 0px rgba(0, 0, 0, 0.55);
+    --shadow-glow-amber: 0 0 20px rgba(232, 163, 23, 0.12);
+    --shadow-glow-jade:  0 0 20px rgba(45, 212, 168, 0.12);
+
+    /* ═══ FONT CONFIG ═══
+       🎨 修改这 3 行即可全局切换字体风格！
+       当前方案: 「深夜街机厅」
+         标题: 'Zhi Mang Xing' (毛笔行书，江湖气) — 也可换 'Ma Shan Zheng' | 'Liu Jian Mao Cao'
+         数据: 'Space Mono' (等宽终端感) — 也可换 'JetBrains Mono' | 'Fira Code'
+         正文: 'LXGW WenKai' (霞鹜文楷，手写温度) — 也可换 'ZCOOL KuaiLe' | 'Noto Serif SC'
+       换字体后需同步更新 index.html 中的 Google Fonts 链接
+       ═══════════════════ */
+    --font-display:   'Zhi Mang Xing', cursive;
+    --font-data:      'Space Mono', monospace;
+    --font-body:      'LXGW WenKai', serif;
+
+    /* Spacing */
+    --radius-sm:      5px;
+    --radius-md:      8px;
+    --radius-lg:      12px;
+}
+
+/* ─── GLOBAL RESET ─── */
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-white);
-    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-deep);
+    /* Warm vignette gradient — not a flat dead color */
+    background-image:
+        radial-gradient(ellipse at 50% 0%, rgba(232, 163, 23, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(240, 67, 99, 0.03) 0%, transparent 50%);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-weight: 400;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
+/* Noise texture overlay + scanline — layered atmosphere */
+#root {
+    position: relative;
+    min-height: 100vh;
+}
+#root::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 3px,
+            rgba(0, 0, 0, 0.015) 3px,
+            rgba(0, 0, 0, 0.015) 6px
+        );
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
+}
+
+/* ============================================================
+   CARD SYSTEM — Thick-border manga panel style
+   ============================================================ */
+
+.game-card {
+    background: var(--bg-card);
+    border: 2px solid var(--border-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.game-card:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--shadow-card-lg);
+}
+
+/* Variant: no hover lift */
+.game-card--static {
+    background: var(--bg-card);
+    border: 2px solid var(--border-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+}
+
+/* Variant: highlight border */
+.game-card--accent {
+    border-color: var(--amber);
+    box-shadow: var(--shadow-card), var(--shadow-glow-amber);
+}
+
+/* Variant: danger */
+.game-card--danger {
+    border-color: var(--crimson);
+    box-shadow: var(--shadow-card), 0 0 20px rgba(232, 55, 90, 0.15);
+}
+
+/* Legacy compat — map glass-card to game-card */
 .glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    background: var(--bg-card);
+    border: 2px solid var(--border-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
 }
 
-.neon-btn-green {
-    background: transparent;
-    border: 1px solid var(--neon-green);
-    color: var(--neon-green);
-    padding: 8px 16px;
-    border-radius: 6px;
+/* ============================================================
+   BUTTON SYSTEM — Arcade-style with press bounce
+   ============================================================ */
+
+.btn-arcade {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 20px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    border: 2px solid var(--amber);
+    background: linear-gradient(180deg, rgba(232, 163, 23, 0.15) 0%, rgba(232, 163, 23, 0.04) 100%);
+    color: var(--amber);
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.12s ease;
+    box-shadow: 0 3px 0 var(--amber-dim), var(--shadow-glow-amber);
+    position: relative;
+    text-decoration: none;
+    user-select: none;
+    overflow: hidden;
+}
+/* Shimmer sweep on hover */
+.btn-arcade::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -75%;
+    width: 50%;
+    height: 200%;
+    background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(232, 163, 23, 0.12) 45%,
+        rgba(232, 163, 23, 0.25) 50%,
+        rgba(232, 163, 23, 0.12) 55%,
+        transparent 60%
+    );
+    transition: left 0.5s ease;
+}
+.btn-arcade:hover::after {
+    left: 125%;
+}
+.btn-arcade:hover {
+    background: linear-gradient(180deg, rgba(232, 163, 23, 0.25) 0%, rgba(232, 163, 23, 0.08) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--amber-dim), var(--shadow-glow-amber);
+}
+.btn-arcade:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--amber-dim);
+}
+
+/* Green variant */
+.btn-jade {
+    border-color: var(--jade);
+    color: var(--jade);
+    background: linear-gradient(180deg, rgba(10, 207, 131, 0.12) 0%, rgba(10, 207, 131, 0.03) 100%);
+    box-shadow: 0 3px 0 var(--jade-dim), var(--shadow-glow-jade);
+}
+.btn-jade:hover {
+    background: linear-gradient(180deg, rgba(10, 207, 131, 0.22) 0%, rgba(10, 207, 131, 0.08) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--jade-dim), var(--shadow-glow-jade);
+}
+.btn-jade:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--jade-dim);
+}
+
+/* Red / Danger variant */
+.btn-danger {
+    border-color: var(--crimson);
+    color: var(--crimson);
+    background: linear-gradient(180deg, rgba(232, 55, 90, 0.12) 0%, rgba(232, 55, 90, 0.03) 100%);
+    box-shadow: 0 3px 0 var(--crimson-dim), 0 0 15px rgba(232, 55, 90, 0.1);
+}
+.btn-danger:hover {
+    background: linear-gradient(180deg, rgba(232, 55, 90, 0.22) 0%, rgba(232, 55, 90, 0.08) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--crimson-dim), 0 0 20px rgba(232, 55, 90, 0.15);
+}
+.btn-danger:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--crimson-dim);
+}
+
+/* Sky / Practice variant */
+.btn-sky {
+    border-color: var(--sky);
+    color: var(--sky);
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0.03) 100%);
+    box-shadow: 0 3px 0 var(--sky-dim), var(--sky-glow);
+}
+.btn-sky:hover {
+    background: linear-gradient(180deg, rgba(56, 189, 248, 0.22) 0%, rgba(56, 189, 248, 0.08) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--sky-dim), var(--sky-glow);
+}
+.btn-sky:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--sky-dim);
+}
+
+/* Legacy compat for neon-btn-green */
+.neon-btn-green {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 20px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 700;
+    border: 2px solid var(--jade);
+    background: linear-gradient(180deg, rgba(10, 207, 131, 0.12) 0%, rgba(10, 207, 131, 0.03) 100%);
+    color: var(--jade);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.12s ease;
+    box-shadow: 0 3px 0 var(--jade-dim), var(--shadow-glow-jade);
+    position: relative;
+    user-select: none;
 }
 .neon-btn-green:hover {
-    background: var(--neon-green);
-    color: #000;
-    box-shadow: 0 0 10px var(--neon-green);
+    background: linear-gradient(180deg, rgba(10, 207, 131, 0.25) 0%, rgba(10, 207, 131, 0.1) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 var(--jade-dim), var(--shadow-glow-jade);
+}
+.neon-btn-green:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--jade-dim);
 }
 
-@keyframes pop-glow {
+/* ============================================================
+   TYPOGRAPHY UTILITIES
+   ============================================================ */
+
+.font-display {
+    font-family: var(--font-display);
+}
+.font-data {
+    font-family: var(--font-data);
+}
+
+.text-profit {
+    color: var(--jade);
+    font-family: var(--font-data);
+    font-weight: 600;
+}
+.text-loss {
+    color: var(--crimson);
+    font-family: var(--font-data);
+    font-weight: 600;
+}
+.text-amber {
+    color: var(--amber);
+}
+.text-muted {
+    color: var(--text-secondary);
+}
+
+/* ============================================================
+   BADGE / TAG SYSTEM
+   ============================================================ */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font-data);
+    letter-spacing: 0.02em;
+}
+.badge--pvp {
+    background: rgba(232, 55, 90, 0.12);
+    border: 1px solid rgba(232, 55, 90, 0.3);
+    color: var(--crimson);
+}
+.badge--solo {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: var(--sky);
+}
+.badge--buff {
+    background: rgba(240, 180, 41, 0.12);
+    border: 1px solid rgba(240, 180, 41, 0.3);
+    color: var(--amber);
+}
+
+/* ============================================================
+   INPUT FIELDS — Game-styled
+   ============================================================ */
+
+.input-game {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-surface);
+    border: 2px solid var(--border-card);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-data);
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+.input-game:focus {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 3px var(--amber-glow);
+}
+.input-game::placeholder {
+    color: var(--text-muted);
+}
+
+/* ============================================================
+   MODAL / OVERLAY SYSTEM
+   ============================================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 10, 18, 0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.25s ease;
+}
+
+.modal-panel {
+    background: var(--bg-card);
+    border: 2px solid var(--border-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card-lg), 0 0 60px rgba(0,0,0,0.5);
+    padding: 30px;
+    max-width: 440px;
+    width: 92%;
+    text-align: center;
+    animation: cardDrop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.modal-panel--danger {
+    border-color: var(--crimson);
+    box-shadow: var(--shadow-card-lg), 0 0 40px rgba(232, 55, 90, 0.12);
+}
+.modal-panel--success {
+    border-color: var(--jade);
+    box-shadow: var(--shadow-card-lg), 0 0 40px rgba(10, 207, 131, 0.12);
+}
+.modal-panel--amber {
+    border-color: var(--amber);
+    box-shadow: var(--shadow-card-lg), 0 0 40px rgba(240, 180, 41, 0.12);
+}
+
+/* ============================================================
+   KEYFRAME ANIMATIONS
+   ============================================================ */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes cardDrop {
     0% {
-        transform: scale(0.8);
         opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.05);
     }
     100% {
         transform: scale(1);
@@ -51,11 +472,422 @@ body {
     }
 }
 
+@keyframes numberPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+@keyframes radarSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Toast notification animations */
+@keyframes toastSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.92);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastSlideOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.92);
+    }
+}
+
+@keyframes toastProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+@keyframes btnPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+
+/* Elo change badge — animated pop */
 .elo-change-badge {
-    animation: pop-glow 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    font-size: 32px;
-    font-weight: bold;
+    animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    font-family: var(--font-data);
+    font-size: 28px;
+    font-weight: 700;
     text-shadow: 0 0 15px currentColor;
-    margin: 15px 0;
+    margin: 12px 0;
+}
+
+/* ============================================================
+   PROGRESS BARS — Pixel HP style
+   ============================================================ */
+
+.hp-bar-track {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-card);
+    border-radius: 3px;
+    height: 8px;
+    overflow: hidden;
+    position: relative;
+}
+.hp-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    position: relative;
+}
+.hp-bar-fill--jade {
+    background: linear-gradient(90deg, var(--jade-dim), var(--jade));
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.2), 0 0 6px var(--jade-glow);
+}
+.hp-bar-fill--sky {
+    background: linear-gradient(90deg, var(--sky-dim), var(--sky));
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.2), 0 0 6px var(--sky-glow);
+}
+.hp-bar-fill--amber {
+    background: linear-gradient(90deg, var(--amber-dim), var(--amber));
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,0.2), 0 0 6px var(--amber-glow);
+}
+
+/* ============================================================
+   TABLE STYLES — Striped game list
+   ============================================================ */
+
+.game-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    text-align: left;
+}
+.game-table thead tr {
+    border-bottom: 2px solid var(--border-card);
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.game-table thead th {
+    padding: 8px 6px;
+    font-weight: 600;
+}
+.game-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.15s ease;
+}
+.game-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.015);
+}
+.game-table tbody tr:hover {
+    background: rgba(240, 180, 41, 0.04);
+}
+.game-table tbody td {
+    padding: 8px 6px;
+}
+
+/* ============================================================
+   SECTION HEADINGS — Game HUD style
+   ============================================================ */
+
+.section-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--amber);
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed var(--border-card);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title--jade {
+    color: var(--jade);
+}
+
+/* ============================================================
+   DECORATIVE — Comic speech bubble
+   ============================================================ */
+
+.speech-bubble {
+    position: relative;
+    background: var(--bg-elevated);
+    border: 2px solid var(--border-card);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 24px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--bg-elevated);
+}
+.speech-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -13px;
+    left: 23px;
+    width: 0;
+    height: 0;
+    border-left: 11px solid transparent;
+    border-right: 11px solid transparent;
+    border-top: 11px solid var(--border-card);
+}
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.animate-slide-up {
+    animation: slideUp 0.4s ease forwards;
+}
+.animate-pop-in {
+    animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.animate-pulse {
+    animation: numberPulse 0.4s ease;
+}
+.animate-blink {
+    animation: blink 1.2s infinite;
+}
+
+/* Price flash on change */
+.price-flash-up {
+    animation: numberPulse 0.3s ease;
+    color: var(--jade) !important;
+}
+.price-flash-down {
+    animation: numberPulse 0.3s ease;
+    color: var(--crimson) !important;
+}
+
+/* ============================================================
+   📱 RESPONSIVE — Mobile-first H5 Adaptation
+   ============================================================ */
+
+/* Tablet & smaller (≤768px) */
+@media (max-width: 768px) {
+    .game-card, .glass-card {
+        box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+        border-radius: var(--radius-sm);
+    }
+
+    .game-card--static {
+        box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.35);
+        border-radius: var(--radius-sm);
+        border-width: 1.5px;
+    }
+
+    .section-title {
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+
+    .btn-arcade, .neon-btn-green, .btn-jade, .btn-danger, .btn-sky {
+        padding: 9px 16px;
+        font-size: 13px;
+    }
+
+    .modal-panel {
+        padding: 24px 20px;
+        max-width: 92%;
+        border-radius: var(--radius-md);
+    }
+
+    .game-table {
+        font-size: 11px;
+    }
+    .game-table thead th {
+        padding: 6px 4px;
+        font-size: 10px;
+    }
+    .game-table tbody td {
+        padding: 6px 4px;
+    }
+
+    .pretrade-banner {
+        padding: 8px 12px;
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .meeting-lockout {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+}
+
+/* Phone (≤480px) */
+@media (max-width: 480px) {
+    body {
+        font-size: 13px;
+    }
+
+    .game-card, .glass-card {
+        box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.35);
+    }
+
+    .game-card--static {
+        box-shadow: 1px 1px 0px rgba(0, 0, 0, 0.25);
+        border-width: 1px;
+        border-radius: var(--radius-sm);
+    }
+
+    .section-title {
+        font-size: 14px;
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+    }
+
+    .btn-arcade, .neon-btn-green, .btn-jade, .btn-danger, .btn-sky {
+        padding: 8px 14px;
+        font-size: 12px;
+        border-radius: var(--radius-sm);
+        box-shadow: 0 2px 0 currentColor;
+    }
+
+    .modal-panel {
+        padding: 20px 16px;
+        max-width: 95%;
+    }
+
+    .input-game {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+
+    .hp-bar-track {
+        height: 6px;
+    }
+
+    .speech-bubble {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .elo-change-badge {
+        font-size: 22px;
+    }
+
+    .pretrade-banner {
+        padding: 7px 10px;
+        font-size: 11px;
+        margin-bottom: 8px;
+        border-left-width: 3px;
+    }
+
+    .meeting-lockout {
+        padding: 7px 10px;
+        font-size: 11px;
+        border-left-width: 3px;
+    }
+
+    /* Reduce CRT scanline density on small screens */
+    #root::after {
+        background: repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 3px,
+            rgba(0, 0, 0, 0.02) 3px,
+            rgba(0, 0, 0, 0.02) 6px
+        );
+    }
+}
+
+/* ============================================================
+   🏗️ LAYOUT UTILITIES — Responsive helpers
+   ============================================================ */
+
+.layout-page {
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.layout-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 20px;
+}
+
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.grid-trade {
+    display: grid;
+    grid-template-columns: 40% 60%;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .layout-page {
+        padding: 14px;
+    }
+
+    .grid-2col {
+        gap: 10px;
+    }
+
+    .grid-trade {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .layout-page {
+        padding: 10px;
+    }
+
+    .grid-2col {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
 }
 

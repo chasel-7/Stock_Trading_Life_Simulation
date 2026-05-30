@@ -68,12 +68,12 @@ export default function RadarChart({ scores }) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '15px 0' }}>
-            <svg width="300" height="300" style={{ background: 'transparent' }}>
+            <svg viewBox="0 0 300 300" style={{ width: '100%', maxWidth: '300px', height: 'auto', background: 'transparent' }}>
                 {/* 渐变填充定义 */}
                 <defs>
                     <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="rgba(0, 230, 118, 0.15)" />
-                        <stop offset="100%" stopColor="rgba(0, 230, 118, 0)" />
+                        <stop offset="0%" stopColor="rgba(232, 163, 23, 0.12)" />
+                        <stop offset="100%" stopColor="rgba(232, 163, 23, 0)" />
                     </radialGradient>
                 </defs>
 
@@ -89,7 +89,7 @@ export default function RadarChart({ scores }) {
                             key={i}
                             points={points}
                             fill="none"
-                            stroke="#333"
+                            stroke="rgba(255, 255, 255, 0.08)"
                             strokeWidth="1"
                             strokeDasharray={i === 4 ? "none" : "2 2"}
                         />
@@ -97,35 +97,35 @@ export default function RadarChart({ scores }) {
                 })}
 
                 {/* 轴线 */}
-                <line x1={cx} y1={cy - r} x2={cx} y2={cy + r} stroke="#222" strokeWidth="1" />
-                <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke="#222" strokeWidth="1" />
+                <line x1={cx} y1={cy - r} x2={cx} y2={cy + r} stroke="rgba(255, 255, 255, 0.06)" strokeWidth="1" />
+                <line x1={cx - r} y1={cy} x2={cx + r} y2={cy} stroke="rgba(255, 255, 255, 0.06)" strokeWidth="1" />
 
                 {/* 填充后的雷达指标区域 */}
                 <polygon
                     points={polygonPoints}
-                    fill="rgba(0, 230, 118, 0.25)"
-                    stroke="var(--neon-green)"
+                    fill="rgba(232, 163, 23, 0.2)"
+                    stroke="#E8A317"
                     strokeWidth="2"
                     style={{ transition: 'all 0.1s ease-out' }}
                 />
 
                 {/* 顶点标记圆点 */}
-                <circle cx={p0.x} cy={p0.y} r="3" fill="#fff" stroke="var(--neon-green)" strokeWidth="1" />
-                <circle cx={p1.x} cy={p1.y} r="3" fill="#fff" stroke="var(--neon-green)" strokeWidth="1" />
-                <circle cx={p2.x} cy={p2.y} r="3" fill="#fff" stroke="var(--neon-green)" strokeWidth="1" />
-                <circle cx={p3.x} cy={p3.y} r="3" fill="#fff" stroke="var(--neon-green)" strokeWidth="1" />
+                <circle cx={p0.x} cy={p0.y} r="3" fill="#fff" stroke="#E8A317" strokeWidth="1" />
+                <circle cx={p1.x} cy={p1.y} r="3" fill="#fff" stroke="#E8A317" strokeWidth="1" />
+                <circle cx={p2.x} cy={p2.y} r="3" fill="#fff" stroke="#E8A317" strokeWidth="1" />
+                <circle cx={p3.x} cy={p3.y} r="3" fill="#fff" stroke="#E8A317" strokeWidth="1" />
 
                 {/* 指标文本数值标注 */}
-                <text x={cx} y={cy - r - 8} textAnchor="middle" fill="var(--neon-green)" fontSize="11" fontWeight="bold">
+                <text x={cx} y={cy - r - 8} textAnchor="middle" fill="#E8A317" fontSize="11" fontWeight="bold" fontFamily="Space Mono, monospace">
                     投资智慧 ({scores["投资智慧"]})
                 </text>
-                <text x={cx + r + 8} y={cy + 4} textAnchor="start" fill="#eee" fontSize="11">
+                <text x={cx + r + 8} y={cy + 4} textAnchor="start" fill="#E5DDD0" fontSize="11" fontFamily="Space Mono, monospace">
                     社交回报 ({scores["社交回报"]})
                 </text>
-                <text x={cx} y={cy + r + 15} textAnchor="middle" fill="#eee" fontSize="11">
+                <text x={cx} y={cy + r + 15} textAnchor="middle" fill="#E5DDD0" fontSize="11" fontFamily="Space Mono, monospace">
                     生活平衡 ({scores["生活平衡"]})
                 </text>
-                <text x={cx - r - 8} y={cy + 4} textAnchor="end" fill="#eee" fontSize="11">
+                <text x={cx - r - 8} y={cy + 4} textAnchor="end" fill="#E5DDD0" fontSize="11" fontFamily="Space Mono, monospace">
                     心态稳定 ({scores["心态稳定"]})
                 </text>
             </svg>
