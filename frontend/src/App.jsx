@@ -456,11 +456,25 @@ export default function App() {
             toast.show("流动现金余额不足，无法进入该消费场景！", "warning");
             return;
         }
-        setSelectedScene({
-            ...scene,
-            cost: actualCost
-        });
-        setPhase('DECISION');
+
+        // 扣除场景基础费用 (使用 base cost，让 store.addSceneSpend 内部处理折扣)
+        store.addSceneSpend(scene.name, scene.cost);
+
+        // 从事件池抽取卡片
+        const drawnCards = drawSceneEvents(scene.name);
+
+        setSelectedScene({ ...scene, cost: actualCost });
+        setSceneEventCards(drawnCards);
+        setCurrentCardIndex(0);
+        setCardResults([]);
+        setShowCardResult(false);
+
+        if (drawnCards.length > 0) {
+            setPhase('SCENE_CARDS');
+        } else {
+            // 该场景无事件池（不应该发生），直接进入结算
+            handleSceneCardsComplete(scene.name);
+        }
     };
 
     const confirmScene = () => {
