@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useGameStore } from './store/useGameStore';
 import { api } from './api/client';
 import KLineChart from './components/KLineChart';
@@ -213,6 +213,33 @@ export default function App() {
 
     // 游戏内 Toast 通知
     const toast = useToast();
+
+    const synthesizedIntel = useMemo(() => {
+        const grouped = {};
+        store.gatheredInfo.forEach(info => {
+            if (!grouped[info.stock]) grouped[info.stock] = [];
+            grouped[info.stock].push(info);
+        });
+
+        const syntheses = [];
+        Object.entries(grouped).forEach(([stock, items]) => {
+            const sources = new Set(items.map(i => i.source));
+            if (sources.size >= 2) {
+                const stars = sources.size >= 3 ? "⭐⭐⭐" : "⭐⭐";
+                const confidence = sources.size >= 3 ? "高置信度" : "中置信度";
+                syntheses.push(
+                    <div key={stock} className="info-synthesis info-synthesis--active" style={{ padding: '10px', borderRadius: '6px', marginBottom: '10px', borderLeft: '3px solid var(--amber)', fontSize: '12px', lineHeight: '1.6' }}>
+                        💡 <strong>【情报串联 · {stock}】</strong>
+                        <span className="confidence-badge">{stars} {confidence}</span>
+                        <br />
+                        经 {Array.from(sources).join(' & ')} 交叉研判，多条线索指向同一方向。
+                    </div>
+                );
+            }
+        });
+
+        return syntheses;
+    }, [store.gatheredInfo]);
 
     // 当 day 发生改变，或 phase 转换到 TRADE 时，从后端拉取当天的 15 支股的行情数据
     useEffect(() => {
@@ -944,32 +971,7 @@ export default function App() {
                                 <h4 className="section-title" style={{ fontSize: '14px' }}>📓 情报笔记本</h4>
                                 <div className="info-notebook">
                                     {/* 情报串联 */}
-                                    {(() => {
-                                        const grouped = {};
-                                        store.gatheredInfo.forEach(info => {
-                                            if (!grouped[info.stock]) grouped[info.stock] = [];
-                                            grouped[info.stock].push(info);
-                                        });
-
-                                        const syntheses = [];
-                                        Object.entries(grouped).forEach(([stock, items]) => {
-                                            const sources = new Set(items.map(i => i.source));
-                                            if (sources.size >= 2) {
-                                                const stars = sources.size >= 3 ? "⭐⭐⭐" : "⭐⭐";
-                                                const confidence = sources.size >= 3 ? "高置信度" : "中置信度";
-                                                syntheses.push(
-                                                    <div key={stock} className="info-synthesis info-synthesis--active" style={{ padding: '10px', borderRadius: '6px', marginBottom: '10px', borderLeft: '3px solid var(--amber)', fontSize: '12px', lineHeight: '1.6' }}>
-                                                        💡 <strong>【情报串联 · {stock}】</strong>
-                                                        <span className="confidence-badge">{stars} {confidence}</span>
-                                                        <br />
-                                                        经 {Array.from(sources).join(' & ')} 交叉研判，多条线索指向同一方向。
-                                                    </div>
-                                                );
-                                            }
-                                        });
-
-                                        return syntheses.length > 0 ? syntheses : null;
-                                    })()}
+                                    {synthesizedIntel}
 
                                     {store.gatheredInfo.length === 0 ? (
                                         <div style={{ color: 'var(--text-muted)', fontSize: '12px', padding: '10px 0' }}>暂无盘后情报，多去社交场景收集线索吧。</div>
@@ -977,7 +979,7 @@ export default function App() {
                                         store.gatheredInfo.map((info, idx) => {
                                             const qualityStars = info.quality >= 0.8 ? '⭐' : '';
                                             return (
-                                                <div key={idx} className="info-entry" style={{ padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: '12px' }}>
+                                                <div key={`${info.stock}-${info.source}-${idx}`} className="info-entry" style={{ padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: '12px' }}>
                                                     🔍 <span className="info-source-badge">{info.source}</span>
                                                     <span style={{ color: 'var(--amber)', fontWeight: 'bold', marginRight: '4px' }}>{info.stock}</span>: {info.text}
                                                     {qualityStars && <span style={{ marginLeft: '4px' }}>{qualityStars}</span>}
