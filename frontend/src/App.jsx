@@ -379,10 +379,10 @@ export default function App() {
         
         // 2. 判定生活突发随机事件
         const roleProbabilities = {
-            internet_worker: 0.15,
-            freelancer: 0.40,
-            sales_manager: 0.25,
-            government_worker: 0.10
+            internet_worker: 0.50,
+            freelancer: 0.80,
+            sales_manager: 0.65,
+            government_worker: 0.55
         };
         const triggerRate = roleProbabilities[store.roleType] || 0.20;
         const triggerEvent = Math.random() < triggerRate;
