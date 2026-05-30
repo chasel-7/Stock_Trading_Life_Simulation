@@ -590,8 +590,6 @@ export default function App() {
             setShowCardResult(false);
             if (currentCardIndex + 1 < sceneEventCards.length) {
                 setCurrentCardIndex(prev => prev + 1);
-            } else {
-                handleSceneCardsComplete(selectedScene?.name);
             }
         }, 1200);
     };
@@ -623,7 +621,8 @@ export default function App() {
     };
 
     const checkIntelLinking = (stock) => {
-        const infos = store.gatheredInfo.filter(i => i.stock === stock);
+        const gathered = useGameStore.getState().gatheredInfo;
+        const infos = gathered.filter(i => i.stock === stock);
         const sources = new Set(infos.map(i => i.source));
         if (sources.size >= 2) {
             const stars = sources.size >= 3 ? "⭐⭐⭐" : "⭐⭐";
