@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import auth, game
+from app.api.endpoints import auth, game, leaderboard
 
 api_router = APIRouter()
 
@@ -9,5 +9,6 @@ def health_check():
 
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(game.router, prefix="/game", tags=["game"])
+api_router.include_router(leaderboard.router, prefix="/leaderboard", tags=["leaderboard"])
 
 
