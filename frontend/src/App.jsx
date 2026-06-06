@@ -12,6 +12,7 @@ import { useToast, ToastContainer } from './components/GameToast';
 import { diagnoseBiases, calculateRadarMetrics } from './store/diagnostics';
 import { drawSceneEvents } from './data/sceneEvents';
 import TutorialOverlay, { TUTORIAL_STEPS, STORAGE_KEY } from './components/TutorialOverlay';
+import SharePoster from './components/SharePoster';
 
 const LIFE_EVENTS = [
     {
@@ -225,6 +226,7 @@ export default function App() {
     const toast = useToast();
 
     const [tutorialStep, setTutorialStep] = useState(-1); // -1 = inactive
+    const [showSharePoster, setShowSharePoster] = useState(false);
 
     useEffect(() => {
         if (store.isPlaying && store.day === 1 && !localStorage.getItem(STORAGE_KEY)) {
@@ -1243,6 +1245,24 @@ export default function App() {
                     >
                         🏠 返回散户大厅
                     </button>
+                    <button 
+                        className="btn-sky" 
+                        onClick={() => setShowSharePoster(true)} 
+                        style={{ width: '100%', padding: '12px', fontSize: '14px', marginTop: '10px' }}
+                    >
+                        📤 生成分享海报
+                    </button>
+
+                    {showSharePoster && (
+                        <SharePoster
+                            metrics={settlementReport.metrics}
+                            profitRate={((store.assets - 30000) / 30000) * 100}
+                            title={settlementReport.biases?.length === 0 ? '稳健投资者' : '热血操盘手'}
+                            roleName={ROLE_OPTIONS.find(r => r.id === store.roleType)?.name || ''}
+                            day={store.day}
+                            onClose={() => setShowSharePoster(false)}
+                        />
+                    )}
                 </div>
             )}
 
