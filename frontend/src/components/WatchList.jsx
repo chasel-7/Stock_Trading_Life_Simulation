@@ -9,7 +9,7 @@ const SECTOR_EMOJIS = {
 
 export default function WatchList({ stocks, prices, bounds, tick, holdings, selectedStock, onSelectStock }) {
     return (
-        <div className="game-card--static" style={{ padding: '15px', boxSizing: 'border-box' }}>
+        <div className="game-card--static watchlist-container" style={{ padding: '15px', boxSizing: 'border-box' }}>
             <h4 style={{ margin: '0 0 12px 0', borderBottom: '1px solid var(--border-card)', paddingBottom: '6px', fontFamily: 'var(--font-display)', color: 'var(--amber)' }}>📊 15支选定自选行情大盘</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', overflowX: 'auto' }}>
                 <table className="game-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>

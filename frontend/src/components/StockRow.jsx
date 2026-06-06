@@ -4,7 +4,7 @@ export default function StockRow({ stockName, price, holdingQty, onTrade }) {
     const [tradeQty, setTradeQty] = useState(100);
 
     return (
-        <div className="game-card--static" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', margin: '8px 0' }}>
+        <div className="game-card--static trade-controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', margin: '8px 0' }}>
             <div>
                 <div style={{ fontWeight: 'bold', fontFamily: 'var(--font-display)', fontSize: '15px' }}>{stockName}</div>
                 <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>持有: {holdingQty} 股</div>

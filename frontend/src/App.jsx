@@ -184,6 +184,13 @@ function rollChance(chance) {
     return Math.random() < chance;
 }
 
+function getInitialCash(role) {
+    if (role === "sales_manager") return 20000.0;
+    if (role === "freelancer") return 50000.0;
+    if (role === "government_worker") return 15000.0;
+    return 30000.0;
+}
+
 export default function App() {
     const store = useGameStore();
     const [userId, setUserId] = useState(() => 'player_' + Math.random().toString(36).substr(2, 5));
@@ -1256,7 +1263,7 @@ export default function App() {
                     {showSharePoster && (
                         <SharePoster
                             metrics={settlementReport.metrics}
-                            profitRate={((store.assets - 30000) / 30000) * 100}
+                            profitRate={((store.assets - getInitialCash(store.roleType)) / getInitialCash(store.roleType)) * 100}
                             title={settlementReport.biases?.length === 0 ? '稳健投资者' : '热血操盘手'}
                             roleName={ROLE_OPTIONS.find(r => r.id === store.roleType)?.name || ''}
                             day={store.day}

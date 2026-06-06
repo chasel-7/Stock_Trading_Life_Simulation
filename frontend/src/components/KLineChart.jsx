@@ -14,7 +14,7 @@ export default function KLineChart({ prices, history }) {
     const hasHistory = history && history.length > 0;
 
     return (
-        <div className="game-card--static" style={{ padding: '10px 10px 6px 10px' }}>
+        <div className="game-card--static kline-chart-container" style={{ padding: '10px 10px 6px 10px' }}>
             {/* Tab 切换 */}
             <div style={{ display: 'flex', gap: '0', marginBottom: '8px', borderBottom: '1px solid var(--border-card)' }}>
                 <button

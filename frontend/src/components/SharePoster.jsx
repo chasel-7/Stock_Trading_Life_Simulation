@@ -11,9 +11,9 @@ export default function SharePoster({ metrics, profitRate, title, roleName, day,
     const safeProfitRate = typeof profitRate === 'number' ? profitRate : 0;
     const safeMetrics = metrics || {
         "投资智慧": 50,
-        "风险控制": 50,
-        "心态把控": 50,
-        "机会捕捉": 50
+        "心态稳定": 50,
+        "社交回报": 50,
+        "生活平衡": 50
     };
 
     const generatePoster = async () => {
