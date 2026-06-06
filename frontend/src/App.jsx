@@ -11,6 +11,7 @@ import StockReveal from './components/StockReveal';
 import { useToast, ToastContainer } from './components/GameToast';
 import { diagnoseBiases, calculateRadarMetrics } from './store/diagnostics';
 import { drawSceneEvents } from './data/sceneEvents';
+import TutorialOverlay, { TUTORIAL_STEPS, STORAGE_KEY } from './components/TutorialOverlay';
 
 const LIFE_EVENTS = [
     {
@@ -222,6 +223,31 @@ export default function App() {
 
     // 游戏内 Toast 通知
     const toast = useToast();
+
+    const [tutorialStep, setTutorialStep] = useState(-1); // -1 = inactive
+
+    useEffect(() => {
+        if (store.isPlaying && store.day === 1 && !localStorage.getItem(STORAGE_KEY)) {
+            const frameId = requestAnimationFrame(() => {
+                setTutorialStep(0);
+            });
+            return () => cancelAnimationFrame(frameId);
+        }
+    }, [store.isPlaying, store.day]);
+
+    const advanceTutorial = useCallback(() => {
+        if (tutorialStep >= TUTORIAL_STEPS.length - 1) {
+            setTutorialStep(-1);
+            localStorage.setItem(STORAGE_KEY, 'true');
+        } else {
+            setTutorialStep(prev => prev + 1);
+        }
+    }, [tutorialStep]);
+
+    const skipTutorial = useCallback(() => {
+        setTutorialStep(-1);
+        localStorage.setItem(STORAGE_KEY, 'true');
+    }, []);
 
     const synthesizedIntel = useMemo(() => {
         const grouped = {};
@@ -1324,6 +1350,14 @@ export default function App() {
                         </button>
                     </div>
                 </div>
+            )}
+
+            {tutorialStep >= 0 && (
+                <TutorialOverlay
+                    currentStep={tutorialStep}
+                    onNext={advanceTutorial}
+                    onSkip={skipTutorial}
+                />
             )}
 
             {/* PVP 联机同步看板 */}
