@@ -6,9 +6,20 @@ export default function SharePoster({ metrics, profitRate, title, roleName, day,
     const posterRef = useRef(null);
     const [imageUrl, setImageUrl] = useState(null);
     const [generating, setGenerating] = useState(false);
+    const [error, setError] = useState(null);
+
+    const safeProfitRate = typeof profitRate === 'number' ? profitRate : 0;
+    const safeMetrics = metrics || {
+        "投资智慧": 50,
+        "风险控制": 50,
+        "心态把控": 50,
+        "机会捕捉": 50
+    };
 
     const generatePoster = async () => {
         if (!posterRef.current) return;
+        setGenerating(false); // Reset error states
+        setError(null);
         setGenerating(true);
         try {
             const canvas = await html2canvas(posterRef.current, {
@@ -20,6 +31,7 @@ export default function SharePoster({ metrics, profitRate, title, roleName, day,
             setImageUrl(url);
         } catch (err) {
             console.error('Failed to generate poster:', err);
+            setError('海报生成失败，请长按截图或稍后重试。');
         }
         setGenerating(false);
     };
@@ -33,8 +45,8 @@ export default function SharePoster({ metrics, profitRate, title, roleName, day,
                         <div ref={posterRef} style={{ padding: '24px', background: '#0D0F14', borderRadius: '12px' }}>
                             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
                                 <div style={{ fontSize: '28px', marginBottom: '4px' }}>🕹️</div>
-                                <div style={{ fontFamily: 'var(--font-display)', fontSize: '16px', color: '#E8A317' }}>股票人生模拟器</div>
-                                <div style={{ fontFamily: 'var(--font-data)', fontSize: '10px', color: 'rgba(229,221,208,0.4)', letterSpacing: '0.15em' }}>STOCK LIFE ARCADE</div>
+                                <div style={{ fontFamily: 'var(--font-display), "Inter", "Helvetica Neue", sans-serif', fontSize: '16px', color: '#E8A317' }}>股票人生模拟器</div>
+                                <div style={{ fontFamily: 'var(--font-data), "Courier New", Courier, monospace', fontSize: '10px', color: 'rgba(229,221,208,0.4)', letterSpacing: '0.15em' }}>STOCK LIFE ARCADE</div>
                             </div>
 
                             <div style={{ textAlign: 'center', margin: '20px 0' }}>
@@ -42,10 +54,10 @@ export default function SharePoster({ metrics, profitRate, title, roleName, day,
                                 <div style={{
                                     fontSize: '36px',
                                     fontWeight: 'bold',
-                                    fontFamily: 'var(--font-data)',
-                                    color: profitRate >= 0 ? '#2DD4A8' : '#F04363',
+                                    fontFamily: 'var(--font-data), "Courier New", Courier, monospace',
+                                    color: safeProfitRate >= 0 ? '#2DD4A8' : '#F04363',
                                 }}>
-                                    {profitRate >= 0 ? '+' : ''}{profitRate.toFixed(1)}%
+                                    {safeProfitRate >= 0 ? '+' : ''}{safeProfitRate.toFixed(1)}%
                                 </div>
                             </div>
 
@@ -56,15 +68,21 @@ export default function SharePoster({ metrics, profitRate, title, roleName, day,
                             )}
 
                             <div style={{ margin: '16px auto', maxWidth: '200px' }}>
-                                <RadarChart scores={metrics} />
+                                <RadarChart scores={safeMetrics} />
                             </div>
 
                             <div style={{ textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '12px', marginTop: '12px' }}>
-                                <div style={{ fontSize: '11px', color: 'rgba(229,221,208,0.4)', fontFamily: 'var(--font-data)' }}>
+                                <div style={{ fontSize: '11px', color: 'rgba(229,221,208,0.4)', fontFamily: 'var(--font-data), "Courier New", Courier, monospace' }}>
                                     Day {day} · {roleName} · 所有的选择都有价格
                                 </div>
                             </div>
                         </div>
+
+                        {error && (
+                            <div style={{ color: 'var(--crimson)', fontSize: '12px', textAlign: 'center', marginTop: '10px', fontFamily: 'var(--font-data), monospace' }}>
+                                ⚠️ {error}
+                            </div>
+                        )}
 
                         <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
                             <button className="btn-outline" onClick={onClose} style={{ flex: 1, padding: '10px' }}>关闭</button>
