@@ -24,6 +24,10 @@ export const api = {
     async getMarketInfo(seed, day) {
         const res = await fetch(`${API_BASE}/game/market-info?seed=${seed}&day=${day}`);
         return res.json();
+    },
+    async getLeaderboard(type, limit = 10) {
+        const res = await fetch(`${API_BASE}/leaderboard?type=${type}&limit=${limit}`);
+        return res.json();
     }
 };
 

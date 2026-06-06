@@ -996,3 +996,50 @@ body {
 .tutorial-dot--active {
     background: var(--amber);
 }
+
+/* Leaderboard Tab Buttons */
+.btn-tab {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-card);
+    color: var(--text-secondary);
+    padding: 5px 14px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-family: var(--font-data);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-tab--active {
+    background: rgba(240, 180, 41, 0.1);
+    border-color: var(--amber);
+    color: var(--amber);
+}
+
+/* Leaderboard Entries */
+.leaderboard-entry {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    font-size: 13px;
+}
+.leaderboard-entry:last-child { border-bottom: none; }
+.leaderboard-rank {
+    width: 30px;
+    font-family: var(--font-data);
+    color: var(--text-muted);
+}
+.leaderboard-name {
+    flex: 1;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.leaderboard-score {
+    font-family: var(--font-data);
+    font-weight: 600;
+    min-width: 60px;
+    text-align: right;
+}
+

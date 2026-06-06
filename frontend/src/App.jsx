@@ -258,6 +258,27 @@ export default function App() {
         localStorage.setItem(STORAGE_KEY, 'true');
     }, []);
 
+    const [leaderboardType, setLeaderboardType] = useState('profit');
+    const [leaderboardData, setLeaderboardData] = useState([]);
+
+    const fetchLeaderboard = useCallback(async (type) => {
+        try {
+            const data = await api.getLeaderboard(type, 10);
+            setLeaderboardData(data);
+        } catch (err) {
+            console.error('Failed to fetch leaderboard:', err);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!store.isPlaying && phase !== 'SETTLEMENT' && store.user) {
+            const frameId = requestAnimationFrame(() => {
+                fetchLeaderboard(leaderboardType);
+            });
+            return () => cancelAnimationFrame(frameId);
+        }
+    }, [store.isPlaying, phase, leaderboardType, store.user, fetchLeaderboard]);
+
     const synthesizedIntel = useMemo(() => {
         const grouped = {};
         store.gatheredInfo.forEach(info => {
@@ -933,6 +954,45 @@ export default function App() {
                             </div>
                         </div>
                     )}
+
+                    {/* 全服排行榜 */}
+                    <div style={{ marginTop: '24px', borderTop: '2px dashed var(--border-card)', paddingTop: '16px' }}>
+                        <h5 className="section-title" style={{ fontSize: '14px', marginBottom: '10px' }}>🏆 全服排行榜</h5>
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                            <button
+                                className={leaderboardType === 'profit' ? 'btn-tab btn-tab--active' : 'btn-tab'}
+                                onClick={() => setLeaderboardType('profit')}
+                            >
+                                💰 总收益
+                            </button>
+                            <button
+                                className={leaderboardType === 'overall' ? 'btn-tab btn-tab--active' : 'btn-tab'}
+                                onClick={() => setLeaderboardType('overall')}
+                            >
+                                🏅 全能
+                            </button>
+                        </div>
+                        <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                            {leaderboardData.length === 0 ? (
+                                <div style={{ color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center', padding: '16px 0' }}>暂无排行数据</div>
+                            ) : (
+                                leaderboardData.map((entry) => (
+                                    <div key={entry.user_id} className="leaderboard-entry">
+                                        <span className="leaderboard-rank">
+                                            {entry.rank <= 3 ? ['🥇', '🥈', '🥉'][entry.rank - 1] : `#${entry.rank}`}
+                                        </span>
+                                        <span className="leaderboard-name">{entry.username}</span>
+                                        <span className="leaderboard-score" style={{ color: leaderboardType === 'profit' ? (entry.score >= 0 ? 'var(--jade)' : 'var(--crimson)') : 'var(--amber)' }}>
+                                            {leaderboardType === 'profit'
+                                                ? `${entry.score >= 0 ? '+' : ''}${entry.score.toFixed(1)}%`
+                                                : `${entry.score.toFixed(0)}分`
+                                            }
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         );
