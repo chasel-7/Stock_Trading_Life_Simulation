@@ -937,3 +937,62 @@ body {
     background: rgba(240, 180, 41, 0.04);
 }
 
+/* Tutorial Overlay */
+.tutorial-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9997;
+}
+.tutorial-tooltip {
+    background: var(--bg-card);
+    border: 2px solid var(--amber);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(240, 180, 41, 0.1);
+    max-width: 340px;
+    animation: cardDrop 0.3s ease forwards;
+}
+.tutorial-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+}
+.tutorial-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.tutorial-skip {
+    background: transparent;
+    border: 1px solid var(--border-card);
+    color: var(--text-muted);
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 12px;
+}
+.tutorial-next {
+    background: var(--amber);
+    color: var(--bg-primary);
+    border: none;
+    padding: 7px 18px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+}
+.tutorial-progress {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 12px;
+}
+.tutorial-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border-card);
+}
+.tutorial-dot--active {
+    background: var(--amber);
+}
